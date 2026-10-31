@@ -7,7 +7,7 @@
 | **SDLC step** | 3. Write the PRD |
 | **Owner** | Teja (PM / PO) |
 | **Engineering** | Claude (Tech Lead) |
-| **Version** | v1.0 |
+| **Version** | v1.1 |
 | **Status** | ✅ Approved (2026-10-31) |
 | **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) |
 
@@ -19,7 +19,7 @@
 
 **Why:** Tutorials teach code, not how software is shipped inside a company. AI writes code faster, but the process of shipping it safely is now the core skill interviewers test. *"AI can write the code. Someone still has to ship it."*
 
-**v1 objective:** Launch a polished, explorable map with 13 fully written stations covering all 9 phases, so a user can start the journey and feel the progression from junior to senior.
+**v1 objective:** Launch a polished, explorable map with 14 fully written stations covering all 9 phases, so a user can start the journey and feel the progression from junior to senior.
 
 **v1 architecture constraint:** Frontend only. No backend API, no database, no accounts. Content lives in the repo; progress is saved in the browser. v1 is still deployed to production through the full lifecycle (CI, Docker, staging, UAT, CR, go/no-go, canary, monitoring).
 
@@ -69,7 +69,7 @@
 
 ### Navigation and rank rules
 - Stations are **freely explorable**; the recommended next station glows.
-- Rank is based on the **percentage of available stations completed**: Junior 25%, Mid-level 50%, Senior 100%. Station counts are **rounded up** (with 13 stations: Junior = 4, Mid-level = 7, Senior = 13).
+- Rank is based on the **percentage of available stations completed**: Junior 25%, Mid-level 50%, Senior 100%. Station counts are **rounded up** (with 14 stations: Junior = 4, Mid-level = 7, Senior = 14).
 - A rank is **never lost** once earned, even when new stations are added.
 
 ---
@@ -106,11 +106,11 @@ Priority: **M** = Must have, **S** = Should have, **C** = Could have
 | Mid-level | `docker build -t you:mid .` |
 | Senior | `git commit -m "became senior"` |
 
-### v1 stations (13 fully written)
+### v1 stations (14 fully written)
 
 | Phase | Stations |
 |-------|----------|
-| 1. Discovery and planning | #1 Problem statement · #2 PRD · #4 Epics and stories |
+| 1. Discovery and planning | #1 Problem statement · #2 PRD · #3 Technical feasibility / spike · #4 Epics and stories |
 | 2. Design | #7 UX design |
 | 3. Development | #10 Git · #13 Code quality · #14 Pull request and code review |
 | 4. Continuous integration | #15 CI pipeline · #17 Docker image build and image tagging |
@@ -161,7 +161,7 @@ Each station is written when we reach that step in our own build, so its "How we
 | Animated videos for each station (60–90s, with captions) | v2 |
 | User accounts, login, progress across devices | v2 |
 | Backend API and database | v2 |
-| The remaining 29 stations as full content (locked in v1) | Added over time |
+| The remaining 28 stations as full content (locked in v1) | Added over time |
 | Multiple languages | Later |
 | Paid features | Not planned |
 
@@ -208,7 +208,7 @@ Each station is written when we reach that step in our own build, so its "How we
 v1 is ready to launch when:
 
 - [ ] All **Must have** requirements are done and accepted by the PO
-- [ ] All 13 v1 stations are fully written and reviewed against the quality bar (except the "How we did it" sections of #29 and #34, which are completed after launch)
+- [ ] All 14 v1 stations are fully written and reviewed against the quality bar (except the "How we did it" sections of #29 and #34, which are completed after launch)
 - [ ] Test coverage ≥ 80%; all tests pass; no open P1 or P2 bugs
 - [ ] Lighthouse ≥ 90; accessibility checks pass
 - [ ] UAT signed off by the PO
@@ -233,6 +233,7 @@ Changes after sign-off are welcome, but they go through a controlled process:
 |---------|------|--------|--------|
 | v0.9 | 2026-10-31 | Initial draft (all 10 sections) | Teja / Claude |
 | v1.0 | 2026-10-31 | PRD review: applied RC-1 to RC-6 (see below). Approved by the PO. | Teja / Claude |
+| v1.1 | 2026-10-31 | SC-1: added station #3 (Technical feasibility / spike) to v1; 14 stations. | Teja / Claude |
 
 ## PRD Review Record (Step 4)
 
@@ -243,6 +244,12 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | RC-3 | 🟡 Should fix | "Complete Phase 1" was unclear with only 3 of 6 stations available | Defined as all **available** Phase 1 stations |
 | RC-4 | 🟡 Should fix | Behaviour of station addresses (SEO) was undefined | Opens the map with that station's panel open |
 | RC-5 | 🟡 Should fix | Analytics cookies may need a consent banner | Prefer cookie-free tracking; added open question Q5 |
-| RC-6 | 🟢 Nit | Rank rounding was undefined | Round up: 4 / 7 / 13 stations |
+| RC-6 | 🟢 Nit | Rank rounding was undefined | Round up: 4 / 7 / 13 stations (updated to 4 / 7 / 14 in v1.1) |
 
 **Sign-off:** ✅ Teja (PO), ✅ Claude (Engineering)
+
+## Scope Change Record
+
+| ID | Version | Request | Impact assessment | Decision |
+|----|---------|---------|-------------------|----------|
+| SC-1 | v1.1 | Add **#3 Technical feasibility / spike** to the v1 stations (requested by the PO during step 5) | Low: one more content file; real artifact available from our own spike (`docs/03-spike-findings.md`). Senior rank threshold becomes 14. | ✅ Added to v1 |
