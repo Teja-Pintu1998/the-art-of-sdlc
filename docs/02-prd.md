@@ -7,7 +7,7 @@
 | **SDLC step** | 3. Write the PRD |
 | **Owner** | Teja (PM / PO) |
 | **Engineering** | Claude (Tech Lead) |
-| **Version** | v1.2 |
+| **Version** | v1.3 |
 | **Status** | ✅ Approved (2026-10-31) |
 | **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) · [Spike findings](03-spike-findings.md) |
 
@@ -235,6 +235,7 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | v1.0 | 2026-10-31 | PRD review: applied RC-1 to RC-6 (see below). Approved by the PO. | Teja / Claude |
 | v1.1 | 2026-10-31 | SC-1: added station #3 (Technical feasibility / spike) to v1; 14 stations. | Teja / Claude |
 | v1.2 | 2026-10-31 | SC-2: FR-2 clarified. Landing shows a preview card, then the full panel. | Teja / Claude |
+| v1.3 | 2026-10-31 | Content clarification (no scope change): station #4 also covers the backlog lifecycle and story loop, since #5 and #6 are locked in v1. | Teja / Claude |
 
 ## PRD Review Record (Step 4)
 

@@ -200,5 +200,6 @@ docs/
 | 2026-10-31 | Scope change SC-1 | PO added station #3 (spike) to v1 (PRD v1.1, 14 stations). |
 | 2026-10-31 | 5. Feasibility spike | Built the map twice (DOM + Framer Motion vs PixiJS) on the throwaway `spike/map-feasibility` branch and benchmarked both. Found that Framer Motion's drag breaks in a zoomed map (fixed with custom pointer drag). PO testing found flicker when zoomed out (fixed with semantic zoom). **Option A approved.** See [docs/03-spike-findings.md](docs/03-spike-findings.md). |
 | 2026-10-31 | Scope change SC-2 | Landing on a planet shows a preview card, then the full panel (PRD v1.2). |
+| 2026-10-31 | 6. User stories | Broke the PRD into a backlog. First draft: 48 stories in 8 epics. At the PO's request, consolidated into **10 stories with task checklists** (46 tasks); code review then caught PRD requirements missing from the draft (performance, security, accessibility and browser checks; canary rollout support; "Mark as complete"), which were added. PRD v1.3 records the station #4 content decision. See [docs/04-epics-and-stories.md](docs/04-epics-and-stories.md). |
 
-**Next:** Step 6, epics and user stories.
+**Next:** Step 7, Definition of Ready / Done.
