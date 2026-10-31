@@ -41,6 +41,7 @@ Tutorials teach frameworks. They don't teach **how real work flows inside a comp
 | Core interaction | A draggable astronaut: drop it on a station and click to enter |
 | Progression | Intern → Junior → Mid-level → Senior |
 | Tech stack | Next.js, React, Tailwind CSS, Framer Motion |
+| Project board | [The Art of SDLC: v1](https://github.com/users/Teja-Pintu1998/projects/2) (GitHub Projects) |
 | v1 scope | Full platform plus a first set of fully written stations; the rest shown as locked |
 | v2 (later) | A 60–90s animated, captioned video for every station |
 

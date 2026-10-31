@@ -6,7 +6,7 @@
 | **SDLC step** | 6. Epics and user stories |
 | **Owner** | Teja (PO); drafted by Claude (Tech Lead) |
 | **Source** | [PRD v1.3](02-prd.md) · [Spike findings](03-spike-findings.md) |
-| **Tracking** | GitHub Issues + GitHub Projects board (To Do → In Progress → In Review → QA → Done) |
+| **Tracking** | [GitHub Issues #1–#10](https://github.com/Teja-Pintu1998/the-art-of-sdlc/issues) on the [project board](https://github.com/users/Teja-Pintu1998/projects/2) (To Do → In Progress → In Review → QA → Done) |
 | **Status** | ✅ Approved by the PO (10-story structure) |
 
 ---
