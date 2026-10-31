@@ -193,5 +193,6 @@ docs/
 | Date | Step | Summary |
 |------|------|---------|
 | 2026-10-31 | Ideation | Defined the concept, chose the space theme and tech stack, finalised the 42 stations and the 46-step build process, and named the product **The Art of SDLC** with its taglines. |
+| 2026-10-31 | 1. Project kickoff | Approved the vision, v1 scope, roles, working agreement, 1-week sprints and risk mitigations. See [docs/00-kickoff.md](docs/00-kickoff.md). |
 
-**Next:** Step 1, project kickoff.
+**Next:** Step 2, problem statement and business case.
