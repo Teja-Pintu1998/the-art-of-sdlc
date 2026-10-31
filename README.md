@@ -2,7 +2,7 @@
 
 > `npm install experience`
 
-An interactive, space-themed dashboard that teaches the full software development life cycle, from PRD to production monitoring, the way it's practised at large companies. It's built for people who want to think and talk like a senior engineer (5–6 years of experience) in interviews, even before they have that experience.
+An interactive, space-themed dashboard that teaches the full software development life cycle, from PRD to production monitoring, the way it's practised at large companies. It's built for people who want to think and talk like a senior engineer in interviews, even before they've been one.
 
 When the user reaches the Senior rank:
 
