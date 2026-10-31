@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; overflow: hidden; background: #050816; color: #e2e8f0; font-family: system-ui, sans-serif; }
+
+.root { position: fixed; inset: 0; overflow: hidden; }
+.stars { position: absolute; inset: 0; }
+.world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.path { position: absolute; inset: 0; overflow: visible; }
+.path path { fill: none; stroke: #7dd3fc; stroke-opacity: .45; stroke-width: 6; stroke-dasharray: 18 14; animation: flow 1.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -32; } }
+.sector { position: absolute; font-size: 64px; font-weight: 700; white-space: nowrap; opacity: .85; }
+.planet { position: absolute; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 22px; }
+.astro { position: absolute; left: 0; top: 0; font-size: 56px; line-height: 64px; text-align: center; cursor: grab; touch-action: none; user-select: none; border-radius: 50%; }
+.astro:focus-visible { outline: 4px solid #facc15; outline-offset: 4px; }
+.mini { position: fixed; right: 16px; bottom: 16px; background: #0b1023cc; border: 1px solid #334155; border-radius: 8px; }
+.dialog { position: fixed; right: 24px; top: 80px; width: 320px; padding: 20px; background: #0f172aee; border: 1px solid #6366f1; border-radius: 12px; }
+.hud { position: fixed; left: 16px; top: 12px; display: flex; gap: 14px; align-items: center; font-size: 13px; background: #0b1023cc; padding: 8px 12px; border-radius: 8px; }
+.hud a { color: #93c5fd; }
+.fps { position: fixed; left: 16px; bottom: 16px; font: 600 14px ui-monospace, monospace; background: #0b1023cc; padding: 6px 10px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) { .path path { animation: none; } }
