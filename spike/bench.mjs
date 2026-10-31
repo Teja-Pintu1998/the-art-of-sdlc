@@ -102,7 +102,7 @@ for (const impl of ['dom', 'pixi']) {
 }
 
 // --- 3. Does the astronaut track the cursor while dragging inside a zoomed (scaled) map? ---
-for (const [label, extra] of [['custom pointer drag', ''], ['Framer Motion drag', '&fmdrag=1']]) {
+for (const [label, extra] of [['custom pointer drag', '']]) {
   for (const s of [0.5, 2]) {
     const { ctx, page } = await open('dom', extra)
     await page.evaluate((s) => {

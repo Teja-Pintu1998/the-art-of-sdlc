@@ -1,17 +1,29 @@
-// Prototype A: DOM/SVG world + CSS transforms for pan/zoom + Framer Motion for animation.
+// Prototype A: DOM/SVG + Framer Motion, with "semantic zoom".
+// The world is NOT CSS-scaled (that rasterises one huge layer and shrinks it like an image, causing
+// flicker and vanishing thin lines). Instead every element is re-positioned in screen space each frame,
+// with sizes clamped so planets and the path stay crisp and visible at any zoom.
 import { useEffect, useRef, useState } from 'react'
-import { animate, motion, useMotionValue } from 'framer-motion'
+import { animate, useMotionValue } from 'framer-motion'
 import {
   PHASES, STATIONS, WORLD, type View, centerOn, nearestStation, prefersReducedMotion, zoomAt,
 } from './layout'
 
-const ASTRO = 64
-// ?fmdrag=1 uses Framer Motion's built-in `drag` instead of our pointer handling (to test scaled-parent behaviour).
-const FM_DRAG = new URLSearchParams(location.search).has('fmdrag')
+const ASTRO = 56 // on-screen size, px
+const MIN_PLANET_R = 9 // planets never shrink below this on screen
+const LABEL_MIN_SCALE = 0.45 // hide station numbers when zoomed further out
+
+// Sector title anchors: middle of each phase, alternating above/below the path to avoid overlap.
+const SECTORS = PHASES.map((p, i) => {
+  const st = STATIONS.filter((s) => s.phase === i)
+  const x = (st[0].x + st[st.length - 1].x) / 2
+  return { name: p.name, color: p.color, x, y: i % 2 ? WORLD.h / 2 + 1000 : WORLD.h / 2 - 1000 }
+})
 
 export default function DomMap() {
   const rootRef = useRef<HTMLDivElement>(null)
-  const worldRef = useRef<HTMLDivElement>(null)
+  const pathRef = useRef<SVGPathElement>(null)
+  const planetRefs = useRef<(HTMLDivElement | null)[]>([])
+  const sectorRefs = useRef<(HTMLDivElement | null)[]>([])
   const starsRef = useRef<HTMLCanvasElement>(null)
   const miniRef = useRef<HTMLCanvasElement>(null)
   const astroRef = useRef<HTMLDivElement>(null)
@@ -23,13 +35,49 @@ export default function DomMap() {
   const openRef = useRef(false)
   openRef.current = open
 
+  // Astronaut position in WORLD units; Framer Motion animates these.
   const ax = useMotionValue(STATIONS[0].x)
   const ay = useMotionValue(STATIONS[0].y)
 
-  // Apply the view directly to the DOM (no React re-render per frame).
-  const applyView = () => {
+  const toScreen = (wx: number, wy: number) => {
     const { x, y, s } = view.current
-    if (worldRef.current) worldRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${s})`
+    return { x: wx * s + x, y: wy * s + y }
+  }
+
+  const placeAstro = () => {
+    const p = toScreen(ax.get(), ay.get())
+    if (astroRef.current) astroRef.current.style.transform = `translate3d(${p.x - ASTRO / 2}px, ${p.y - ASTRO / 2}px, 0)`
+  }
+
+  // Re-position everything in screen space (no React re-render per frame).
+  const applyView = () => {
+    const { s } = view.current
+    const showLabels = s >= LABEL_MIN_SCALE
+    // Transform-only updates (compositor work, no layout): each planet has a fixed size and is
+    // scaled individually, never below MIN_PLANET_R on screen.
+    STATIONS.forEach((st, i) => {
+      const el = planetRefs.current[i]
+      if (!el) return
+      const p = toScreen(st.x, st.y)
+      const k = Math.max(MIN_PLANET_R / st.r, s)
+      el.style.transform = `translate3d(${p.x - st.r}px, ${p.y - st.r}px, 0) scale(${k})`
+      const labels = showLabels ? 'on' : 'off'
+      if (el.dataset.labels !== labels) el.dataset.labels = labels
+    })
+    SECTORS.forEach((sec, i) => {
+      const el = sectorRefs.current[i]
+      if (!el) return
+      const p = toScreen(sec.x, sec.y)
+      const k = Math.max(12 / 64, Math.min(40 / 64, s))
+      el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${k})`
+    })
+    if (pathRef.current) {
+      pathRef.current.setAttribute('d', STATIONS.map((st, i) => {
+        const p = toScreen(st.x, st.y)
+        return `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`
+      }).join(' '))
+    }
+    placeAstro()
     drawMini()
   }
 
@@ -59,17 +107,20 @@ export default function DomMap() {
     currentRef.current = idx
     setCurrent(idx)
     if (pan) {
-      // Keep the astronaut on screen.
-      const { x, y, s } = view.current
-      const sx = st.x * s + x
-      const sy = st.y * s + y
-      if (sx < 80 || sy < 80 || sx > innerWidth - 80 || sy > innerHeight - 80) {
-        view.current = centerOn(st.x, st.y, s)
+      const p = toScreen(st.x, st.y)
+      if (p.x < 80 || p.y < 80 || p.x > innerWidth - 80 || p.y > innerHeight - 80) {
+        view.current = centerOn(st.x, st.y, view.current.s)
         applyView()
       }
     }
     drawMini()
   }
+
+  useEffect(() => {
+    const ux = ax.on('change', placeAstro)
+    const uy = ay.on('change', placeAstro)
+    return () => { ux(); uy() }
+  }, [])
 
   // Pan / pinch / wheel on the background.
   useEffect(() => {
@@ -112,6 +163,7 @@ export default function DomMap() {
     root.addEventListener('pointerup', up)
     root.addEventListener('pointercancel', up)
     root.addEventListener('wheel', wheel, { passive: false })
+    addEventListener('resize', applyView)
     applyView()
     return () => {
       root.removeEventListener('pointerdown', down)
@@ -119,6 +171,7 @@ export default function DomMap() {
       root.removeEventListener('pointerup', up)
       root.removeEventListener('pointercancel', up)
       root.removeEventListener('wheel', wheel)
+      removeEventListener('resize', applyView)
     }
   }, [])
 
@@ -151,9 +204,9 @@ export default function DomMap() {
   // Custom astronaut drag: convert screen deltas into world units (divide by scale).
   const dragStart = useRef<{ px: number; py: number; ax: number; ay: number } | null>(null)
   const onAstroDown = (e: React.PointerEvent) => {
-    if (FM_DRAG) return
-    e.stopPropagation()
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    ax.stop()
+    ay.stop()
     dragStart.current = { px: e.clientX, py: e.clientY, ax: ax.get(), ay: ay.get() }
   }
   const onAstroMove = (e: React.PointerEvent) => {
@@ -166,9 +219,6 @@ export default function DomMap() {
   const onAstroUp = () => {
     if (!dragStart.current) return
     dragStart.current = null
-    drop()
-  }
-  const drop = () => {
     const i = nearestStation(ax.get(), ay.get())
     moveTo(i >= 0 ? i : currentRef.current, false)
   }
@@ -195,62 +245,54 @@ export default function DomMap() {
       getView: () => view.current,
       getCurrent: () => currentRef.current,
       reset: () => { ax.set(STATIONS[0].x); ay.set(STATIONS[0].y); currentRef.current = 0; setCurrent(0) },
-      worldToScreen: (wx, wy) => ({ x: wx * view.current.s + view.current.x, y: wy * view.current.s + view.current.y }),
+      worldToScreen: toScreen,
       stations: STATIONS,
       isDialogOpen: () => openRef.current,
     }
   }, [])
 
-  const pathD = STATIONS.map((s, i) => `${i ? 'L' : 'M'}${s.x},${s.y}`).join(' ')
   const st = STATIONS[current]
 
   return (
     <div ref={rootRef} className="root" style={{ touchAction: 'none' }}>
       <canvas ref={starsRef} className="stars" aria-hidden="true" />
-      <div ref={worldRef} className="world" style={{ width: WORLD.w, height: WORLD.h }}>
-        <svg width={WORLD.w} height={WORLD.h} className="path" aria-hidden="true">
-          <path d={pathD} />
-        </svg>
-        {PHASES.map((p, i) => {
-          const first = STATIONS.find((s) => s.phase === i)!
-          return (
-            <div key={p.name} className="sector" style={{ left: first.x - 40, top: 120, color: p.color }}>
-              {p.name}
-            </div>
-          )
-        })}
-        {STATIONS.map((s) => (
-          <div
-            key={s.id}
-            className="planet"
-            style={{
-              left: s.x - s.r, top: s.y - s.r, width: s.r * 2, height: s.r * 2,
-              background: `radial-gradient(circle at 30% 30%, #fff8, ${s.color} 45%, #000a)`,
-              boxShadow: `0 0 ${s.r}px ${s.color}`,
-            }}
-          >
-            <span>#{s.id}</span>
-          </div>
-        ))}
-        <motion.div
-          ref={astroRef}
-          data-astronaut
-          data-testid="astronaut"
-          role="button"
-          tabIndex={0}
-          aria-label={`Astronaut at station ${st.id}. Arrow keys move between stations, Enter opens the station.`}
-          className="astro"
-          style={{ x: ax, y: ay, width: ASTRO, height: ASTRO, marginLeft: -ASTRO / 2, marginTop: -ASTRO / 2 }}
-          onPointerDown={onAstroDown}
-          onPointerMove={onAstroMove}
-          onPointerUp={onAstroUp}
-          onKeyDown={onKey}
-          drag={FM_DRAG}
-          dragMomentum={false}
-          onDragEnd={FM_DRAG ? drop : undefined}
+      <svg className="path" aria-hidden="true">
+        <path ref={pathRef} />
+      </svg>
+      {SECTORS.map((sec, i) => (
+        <div key={sec.name} ref={(el) => { sectorRefs.current[i] = el }} className="sector" style={{ color: sec.color }}>
+          {sec.name}
+        </div>
+      ))}
+      {STATIONS.map((s, i) => (
+        <div
+          key={s.id}
+          ref={(el) => { planetRefs.current[i] = el }}
+          className="planet"
+          style={{
+            width: s.r * 2, height: s.r * 2,
+            background: `radial-gradient(circle at 30% 30%, #fff8, ${s.color} 45%, #000a)`,
+            boxShadow: `0 0 ${s.r}px ${s.color}`,
+          }}
         >
-          🧑‍🚀
-        </motion.div>
+          <span>#{s.id}</span>
+        </div>
+      ))}
+      <div
+        ref={astroRef}
+        data-astronaut
+        data-testid="astronaut"
+        role="button"
+        tabIndex={0}
+        aria-label={`Astronaut at station ${st.id}. Arrow keys move between stations, Enter opens the station.`}
+        className="astro"
+        style={{ width: ASTRO, height: ASTRO }}
+        onPointerDown={onAstroDown}
+        onPointerMove={onAstroMove}
+        onPointerUp={onAstroUp}
+        onKeyDown={onKey}
+      >
+        🧑‍🚀
       </div>
       <canvas ref={miniRef} className="mini" width={240} height={82} aria-hidden="true" />
       {open && (
