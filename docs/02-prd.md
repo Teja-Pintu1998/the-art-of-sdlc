@@ -7,8 +7,8 @@
 | **SDLC step** | 3. Write the PRD |
 | **Owner** | Teja (PM / PO) |
 | **Engineering** | Claude (Tech Lead) |
-| **Version** | v0.9 (draft, pending PRD review) |
-| **Status** | 🟡 In review |
+| **Version** | v1.0 |
+| **Status** | ✅ Approved (2026-10-31) |
 | **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) |
 
 ---
@@ -69,7 +69,7 @@
 
 ### Navigation and rank rules
 - Stations are **freely explorable**; the recommended next station glows.
-- Rank is based on the **percentage of available stations completed**: Junior 25%, Mid-level 50%, Senior 100%.
+- Rank is based on the **percentage of available stations completed**: Junior 25%, Mid-level 50%, Senior 100%. Station counts are **rounded up** (with 13 stations: Junior = 4, Mid-level = 7, Senior = 13).
 - A rank is **never lost** once earned, even when new stations are added.
 
 ---
@@ -80,7 +80,7 @@ Priority: **M** = Must have, **S** = Should have, **C** = Could have
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-1 | **Space map:** 9 phases as sectors, 42 stations as planets, glowing paths showing the order | M |
+| FR-1 | **Space map:** 9 phases as sectors, 42 stations as planets, glowing paths showing the order. The map can be **panned and zoomed**, opens zoomed to the user's current phase, and includes a **mini-map** of the full journey | M |
 | FR-2 | **Astronaut:** drag and drop onto any station, snap to the nearest one, click or press Enter to open it | M |
 | FR-3 | **Keyboard and mobile alternatives:** Tab or arrow keys move between stations on desktop; tap to select on mobile | M |
 | FR-4 | **Station panel:** the 8 content sections, with Close, Previous/Next station and Mark as complete | M |
@@ -119,6 +119,8 @@ Priority: **M** = Must have, **S** = Should have, **C** = Could have
 
 Each station is written when we reach that step in our own build, so its "How we did it" section shows real artifacts. All other stations appear locked.
 
+**Exception:** **#29 Canary** and **#34 New Relic** launch with every section except "How we did it," which shows *"Coming after launch"* and is filled in during hypercare (build step 37). Their real artifacts only exist after deployment.
+
 ---
 
 ## 5. Station Content Requirements
@@ -144,8 +146,8 @@ Each station is written when we reach that step in our own build, so its "How we
 | **Accessibility** | WCAG 2.1 AA; fully keyboard-usable; screen-reader friendly; honours the "reduce motion" system setting |
 | **Devices** | Desktop is the primary experience; tablet and mobile fully supported |
 | **Browsers** | Latest 2 versions of Chrome, Safari, Firefox and Edge |
-| **SEO** | Each station has its own web address and page metadata (e.g. `/station/canary-deployment`) |
-| **Privacy** | No accounts and no personal data; analytics are anonymous |
+| **SEO** | Each station has its own web address and page metadata (e.g. `/station/canary-deployment`). Opening that address shows the map **with that station's panel open** and the astronaut placed on it |
+| **Privacy** | No accounts and no personal data; analytics are anonymous; prefer cookie-free tracking to avoid a consent banner (see Q5) |
 | **Security** | Security headers; no secrets in code; dependency scanning in CI |
 | **Quality** | Test coverage ≥ 80%; CI must pass before merging |
 | **Maintainability** | Content is kept separate from code |
@@ -169,7 +171,7 @@ Each station is written when we reach that step in our own build, so its "How we
 
 | KPI | Target (first 3 months) | How we measure it |
 |-----|-------------------------|-------------------|
-| Visitors who complete Phase 1 | ≥ 60% | Analytics event when a station is completed |
+| Visitors who complete Phase 1 (all **available** Phase 1 stations) | ≥ 60% | Analytics event when a station is completed |
 | Visitors who reach the Senior rank | ≥ 20% | Analytics event when a rank is reached |
 | Users who rate it "helpful for interviews" | ≥ 70% 👍 | Feedback prompt (FR-12) |
 | Lighthouse performance score | ≥ 90 | Lighthouse checks in CI plus New Relic browser monitoring |
@@ -197,6 +199,7 @@ Each station is written when we reach that step in our own build, so its "How we
 | Q2 | Content files in MDX or JSON? | Step 12, technical design |
 | Q3 | Target v1 launch date | Step 9, release plan |
 | Q4 | Domain name | Before launch |
+| Q5 | Can analytics run cookie-free, or is a consent banner needed? | Step 12, technical design |
 
 ---
 
@@ -205,7 +208,7 @@ Each station is written when we reach that step in our own build, so its "How we
 v1 is ready to launch when:
 
 - [ ] All **Must have** requirements are done and accepted by the PO
-- [ ] All 13 v1 stations are fully written and reviewed against the quality bar
+- [ ] All 13 v1 stations are fully written and reviewed against the quality bar (except the "How we did it" sections of #29 and #34, which are completed after launch)
 - [ ] Test coverage ≥ 80%; all tests pass; no open P1 or P2 bugs
 - [ ] Lighthouse ≥ 90; accessibility checks pass
 - [ ] UAT signed off by the PO
@@ -229,3 +232,17 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | Version | Date | Change | Author |
 |---------|------|--------|--------|
 | v0.9 | 2026-10-31 | Initial draft (all 10 sections) | Teja / Claude |
+| v1.0 | 2026-10-31 | PRD review: applied RC-1 to RC-6 (see below). Approved by the PO. | Teja / Claude |
+
+## PRD Review Record (Step 4)
+
+| # | Severity | Comment | Resolution |
+|---|----------|---------|------------|
+| RC-1 | 🔴 Blocker | Release criteria required "How we did it" for #29 Canary and #34 New Relic, which can only exist after deployment | Those sections show "Coming after launch" and are filled during hypercare |
+| RC-2 | 🔴 Blocker | 42 planets don't fit on one screen | Pan and zoom, open on the current phase, mini-map (FR-1) |
+| RC-3 | 🟡 Should fix | "Complete Phase 1" was unclear with only 3 of 6 stations available | Defined as all **available** Phase 1 stations |
+| RC-4 | 🟡 Should fix | Behaviour of station addresses (SEO) was undefined | Opens the map with that station's panel open |
+| RC-5 | 🟡 Should fix | Analytics cookies may need a consent banner | Prefer cookie-free tracking; added open question Q5 |
+| RC-6 | 🟢 Nit | Rank rounding was undefined | Round up: 4 / 7 / 13 stations |
+
+**Sign-off:** ✅ Teja (PO), ✅ Claude (Engineering)
