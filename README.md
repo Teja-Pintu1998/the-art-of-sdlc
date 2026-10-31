@@ -195,5 +195,6 @@ docs/
 | 2026-10-31 | Ideation | Defined the concept, chose the space theme and tech stack, finalised the 42 stations and the 46-step build process, and named the product **The Art of SDLC** with its taglines. |
 | 2026-10-31 | 1. Project kickoff | Approved the vision, v1 scope, roles, working agreement, 1-week sprints and risk mitigations. See [docs/00-kickoff.md](docs/00-kickoff.md). |
 | 2026-10-31 | 2. Problem statement | Defined the problem, target users, why the SDLC still matters in the AI era, goals (product + portfolio) and success KPIs. See [docs/01-problem-statement.md](docs/01-problem-statement.md). |
+| 2026-10-31 | 3. Write the PRD | Drafted the PRD (v0.9): personas, journeys, 16 functional requirements, 13 v1 stations, content rules, non-functional requirements, scope, KPIs and release criteria. Frontend-only v1 (no API or database). See [docs/02-prd.md](docs/02-prd.md). |
 
-**Next:** Step 3, write the PRD.
+**Next:** Step 4, PRD review and sign-off.
