@@ -197,5 +197,8 @@ docs/
 | 2026-10-31 | 2. Problem statement | Defined the problem, target users, why the SDLC still matters in the AI era, goals (product + portfolio) and success KPIs. See [docs/01-problem-statement.md](docs/01-problem-statement.md). |
 | 2026-10-31 | 3. Write the PRD | Drafted the PRD (v0.9): personas, journeys, 16 functional requirements, 13 v1 stations, content rules, non-functional requirements, scope, KPIs and release criteria. Frontend-only v1 (no API or database). See [docs/02-prd.md](docs/02-prd.md). |
 | 2026-10-31 | 4. PRD review | Engineering raised 6 review comments (2 blockers: post-launch station content, map navigation). All fixes accepted; PRD signed off as **v1.0**. |
+| 2026-10-31 | Scope change SC-1 | PO added station #3 (spike) to v1 (PRD v1.1, 14 stations). |
+| 2026-10-31 | 5. Feasibility spike | Built the map twice (DOM + Framer Motion vs PixiJS) on the throwaway `spike/map-feasibility` branch and benchmarked both. Found that Framer Motion's drag breaks in a zoomed map (fixed with custom pointer drag). PO testing found flicker when zoomed out (fixed with semantic zoom). **Option A approved.** See [docs/03-spike-findings.md](docs/03-spike-findings.md). |
+| 2026-10-31 | Scope change SC-2 | Landing on a planet shows a preview card, then the full panel (PRD v1.2). |
 
-**Next:** Step 5, technical feasibility spike.
+**Next:** Step 6, epics and user stories.

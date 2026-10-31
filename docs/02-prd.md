@@ -7,9 +7,9 @@
 | **SDLC step** | 3. Write the PRD |
 | **Owner** | Teja (PM / PO) |
 | **Engineering** | Claude (Tech Lead) |
-| **Version** | v1.1 |
+| **Version** | v1.2 |
 | **Status** | ✅ Approved (2026-10-31) |
-| **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) |
+| **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) · [Spike findings](03-spike-findings.md) |
 
 ---
 
@@ -52,7 +52,7 @@
 ### Journey A: First visit (exploration)
 1. Lands on the page and sees a space command centre with `npm install experience`
 2. A short, skippable intro shows how to drag the astronaut onto a station
-3. Drags the astronaut to **Station 1: Problem statement** and opens it
+3. Drags the astronaut to **Station 1: Problem statement**; a preview card appears, and they click **"Enter station →"**
 4. The station panel opens with the 8 content sections
 5. Marks the station complete; the progress bar fills and the next station glows
 6. Continues exploring along the path
@@ -81,8 +81,8 @@ Priority: **M** = Must have, **S** = Should have, **C** = Could have
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | FR-1 | **Space map:** 9 phases as sectors, 42 stations as planets, glowing paths showing the order. The map can be **panned and zoomed**, opens zoomed to the user's current phase, and includes a **mini-map** of the full journey | M |
-| FR-2 | **Astronaut:** drag and drop onto any station, snap to the nearest one, click or press Enter to open it | M |
-| FR-3 | **Keyboard and mobile alternatives:** Tab or arrow keys move between stations on desktop; tap to select on mobile | M |
+| FR-2 | **Astronaut:** drag and drop onto any station and snap to the nearest one. On landing, a **preview card** appears beside the planet with the station name, a one-line summary and an **"Enter station →"** button; clicking it (or pressing Enter) opens the full station panel (FR-4) | M |
+| FR-3 | **Keyboard and mobile alternatives:** Tab focuses the astronaut; arrow keys move it between stations and update the preview card; Enter activates "Enter station →"; Escape closes the panel, then the card, returning focus to the astronaut. On mobile, tapping a planet moves the astronaut there and shows the card | M |
 | FR-4 | **Station panel:** the 8 content sections, with Close, Previous/Next station and Mark as complete | M |
 | FR-5 | **Progress:** completed stations visibly marked; progress bar; progress saved in the browser and survives refresh | M |
 | FR-6 | **Ranks:** Intern → Junior (25%) → Mid-level (50%) → Senior (100%), with a celebration and a command tagline at each rank-up | M |
@@ -146,7 +146,7 @@ Each station is written when we reach that step in our own build, so its "How we
 | **Accessibility** | WCAG 2.1 AA; fully keyboard-usable; screen-reader friendly; honours the "reduce motion" system setting |
 | **Devices** | Desktop is the primary experience; tablet and mobile fully supported |
 | **Browsers** | Latest 2 versions of Chrome, Safari, Firefox and Edge |
-| **SEO** | Each station has its own web address and page metadata (e.g. `/station/canary-deployment`). Opening that address shows the map **with that station's panel open** and the astronaut placed on it |
+| **SEO** | Each station has its own web address and page metadata (e.g. `/station/canary-deployment`). Opening that address shows the map **with that station's panel open** (skipping the preview card) and the astronaut placed on it |
 | **Privacy** | No accounts and no personal data; analytics are anonymous; prefer cookie-free tracking to avoid a consent banner (see Q5) |
 | **Security** | Security headers; no secrets in code; dependency scanning in CI |
 | **Quality** | Test coverage ≥ 80%; CI must pass before merging |
@@ -189,7 +189,7 @@ Each station is written when we reach that step in our own build, so its "How we
 - GitHub (repo, CI, project board)
 - A hosting provider (chosen in the technical design, step 12)
 - New Relic free tier for monitoring
-- Animation and drag-and-drop libraries performing well (confirmed in the feasibility spike, step 5)
+- Animation and drag-and-drop: **resolved by the spike (step 5)**. Framer Motion is used for animation only; drag uses custom pointer handling because Framer Motion's drag breaks in a zoomed map. See [spike findings](03-spike-findings.md).
 
 ### Open questions
 
@@ -234,6 +234,7 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | v0.9 | 2026-10-31 | Initial draft (all 10 sections) | Teja / Claude |
 | v1.0 | 2026-10-31 | PRD review: applied RC-1 to RC-6 (see below). Approved by the PO. | Teja / Claude |
 | v1.1 | 2026-10-31 | SC-1: added station #3 (Technical feasibility / spike) to v1; 14 stations. | Teja / Claude |
+| v1.2 | 2026-10-31 | SC-2: FR-2 clarified. Landing shows a preview card, then the full panel. | Teja / Claude |
 
 ## PRD Review Record (Step 4)
 
@@ -253,3 +254,4 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | ID | Version | Request | Impact assessment | Decision |
 |----|---------|---------|-------------------|----------|
 | SC-1 | v1.1 | Add **#3 Technical feasibility / spike** to the v1 stations (requested by the PO during step 5) | Low: one more content file; real artifact available from our own spike (`docs/03-spike-findings.md`). Senior rank threshold becomes 14. | ✅ Added to v1 |
+| SC-2 | v1.2 | Clarify what happens when the astronaut lands on a planet (raised by the PO while testing the spike) | Low: one small preview-card component; no impact on scope estimate (release plan not yet set). FR-3 and the SEO deep-link behaviour clarified to match | ✅ Preview card → "Enter station" → full panel |
