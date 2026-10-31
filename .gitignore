@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Test coverage (baseline is tracked)
+coverage/*
+!coverage/coverage-baseline.json
+
+# Environment variables
+.env
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Claude Code local settings
+.claude/settings.local.json
