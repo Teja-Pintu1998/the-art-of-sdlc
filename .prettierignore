@@ -1,0 +1,10 @@
+# Generated / dependencies
+node_modules/
+.next/
+out/
+coverage/
+package-lock.json
+next-env.d.ts
+
+# Prose docs are hand-formatted (tables with emoji); Prettier only formats code and config.
+*.md

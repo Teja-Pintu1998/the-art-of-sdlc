@@ -61,9 +61,33 @@
 
 **How it was verified:** `npm run lint` passes; `npm run build` pre-renders `/` as static; `next start` serves the page with the title "The Art of SDLC".
 
+## 1.3 Code quality tooling ✅
+
+**Goal:** bad code is blocked **before** it's committed, not just in CI.
+
+**What was set up**
+
+| Tool | Role | Config |
+|------|------|--------|
+| **ESLint** | Finds bugs and bad patterns (Next.js core-web-vitals + TypeScript rules) | `eslint.config.mjs`; `npm run lint` fails on **any** warning (`--max-warnings=0`) |
+| **Prettier** | Formats code consistently (with Tailwind class sorting) | `.prettierrc.json`, `.prettierignore` |
+| **eslint-config-prettier** | Turns off ESLint style rules that would fight Prettier | Last in the ESLint config |
+| **Husky** | Runs a Git hook before every commit | `.husky/pre-commit` → `npx lint-staged` |
+| **lint-staged** | Runs the checks on **staged files only**, so commits stay fast | `lint-staged` in `package.json` |
+| **TypeScript check** | Full type check, including Next.js route types | `npm run typecheck` (`next typegen && tsc --noEmit`) |
+
+**What happens on `git commit`**
+1. ESLint runs with `--fix` on staged `.ts/.tsx/.js/.mjs/.cjs` files. Anything it can't fix (e.g. `any`, unused variables) **rejects the commit**.
+2. Prettier rewrites staged code, JSON, CSS and YAML, so formatting problems are **fixed automatically** rather than rejected. CI (task 1.5) runs `npm run format:check` as the backstop for anything committed without the hook.
+
+**Decisions**
+- **Markdown is excluded from Prettier.** The docs use hand-formatted tables with emoji that Prettier would reflow; Prettier formats code and config only.
+- **The type check runs in CI, not in the hook.** A full `tsc` run is too slow for every commit, and `lint-staged` works on individual files.
+
+**How it was verified:** `npm run lint`, `npm run typecheck` and `npm run format:check` all pass. A test commit containing `export const bad: any = 1` was **rejected** by the hook (`@typescript-eslint/no-explicit-any`) and never reached git history.
+
 ## Remaining tasks
 
-- [ ] 1.3 Code quality tooling
 - [ ] 1.4 Testing framework
 - [ ] 1.5 CI pipeline (also completes 1.1's "passing CI" criterion)
 - [ ] 1.6 Docker
