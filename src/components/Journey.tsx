@@ -1,12 +1,26 @@
 "use client";
 
-import { createContext, type ReactNode, use, useCallback, useMemo, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { type LessonViewProps, SpaceMap } from "@/components/map/SpaceMap";
+import { KnowledgeBase } from "@/components/discovery/KnowledgeBase";
+import { Onboarding } from "@/components/discovery/Onboarding";
+import { SearchDialog } from "@/components/discovery/SearchDialog";
+import { type LessonViewProps, type MapHandle, SpaceMap } from "@/components/map/SpaceMap";
 import { Celebration } from "@/components/progress/Celebration";
 import { ProgressHud } from "@/components/progress/ProgressHud";
 import { StationLesson } from "@/components/station/StationLesson";
 import { track } from "@/lib/analytics/track";
+import type { Article } from "@/lib/content/knowledge-base";
 import { type Lesson } from "@/lib/content/sections";
 import { type Station, STATIONS, stationById } from "@/lib/map/stations";
 import { type RankId, rankIndex } from "@/lib/progress/ranks";
@@ -16,6 +30,8 @@ type Props = {
   /** Lessons by station id, loaded and validated at build time. */
   lessons: Record<number, Lesson>;
   availableIds: readonly number[];
+  /** Knowledge-base articles (AOS-6.3). */
+  articles: Article[];
   /** `/station/[slug]`: start on this station with its panel open. */
   routeStationId?: number;
   /** The landing hero. */
@@ -51,10 +67,16 @@ function JourneyLesson({ station, goTo }: LessonViewProps) {
 const idOfSlug = (slug: string) => STATIONS.find((s) => s.slug === slug)?.id;
 
 /** The whole learning journey: map, station lessons, progress, ranks and celebrations. */
-export function Journey({ lessons, availableIds, routeStationId, children }: Props) {
+export function Journey({ lessons, availableIds, articles, routeStationId, children }: Props) {
   const completedSlugs = useProgress((s) => s.completed);
   const highestRank = useProgress((s) => s.highestRank);
+  const onboardingSeen = useProgress((s) => s.onboardingSeen);
   const [celebrating, setCelebrating] = useState<RankId | null>(null);
+  const [dialog, setDialog] = useState<"search" | "kb" | null>(null);
+  const mapRef = useRef<MapHandle>(null);
+  const searchButton = useRef<HTMLButtonElement>(null);
+  const kbButton = useRef<HTMLButtonElement>(null);
+  const jumped = useRef(false);
 
   const availableSlugs = useMemo(
     () => availableIds.map(slugOf).filter((s): s is string => !!s),
@@ -72,20 +94,40 @@ export function Journey({ lessons, availableIds, routeStationId, children }: Pro
   // names one).
   const resolveStartStation = useCallback(() => {
     hydrateProgress();
-    if (routeStationId) return routeStationId;
+    if (routeStationId) {
+      // A shared link counts as a visit, so closing the panel and reloading stays here.
+      useProgress.getState().visit(slugOf(routeStationId)!);
+      return routeStationId;
+    }
     const last = useProgress.getState().lastStation;
     return last ? idOfSlug(last) : undefined;
   }, [routeStationId]);
 
   const onStationChange = useCallback((id: number) => {
-    const slug = slugOf(id);
-    if (slug) useProgress.getState().visit(slug);
+    const store = useProgress.getState();
+    store.visit(slugOf(id)!);
+    // Moving the astronaut means the learner has got the idea: end the intro.
+    if (!store.onboardingSeen) store.finishOnboarding();
+  }, []);
+
+  // Saved progress loads in SpaceMap's layout effect (above). This sync re-render, still before the
+  // first paint, makes the progress box and check marks show it, with no flash of "0/14".
+  const [hydrated, setHydrated] = useState(false);
+  useLayoutEffect(() => {
+    hydrateProgress();
+    // Intentional: one synchronous re-render before paint, so saved progress shows on frame one.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHydrated(true);
   }, []);
 
   // Keep the address bar shareable: /station/<slug> while a panel is open, / otherwise.
   const onPanelChange = useCallback((id: number | null) => {
-    const slug = id === null ? null : slugOf(id);
-    window.history.replaceState(null, "", slug ? `/station/${slug}` : "/");
+    if (id !== null && !useProgress.getState().onboardingSeen) {
+      useProgress.getState().finishOnboarding();
+    }
+    const station = id === null ? undefined : stationById(id);
+    window.history.replaceState(null, "", station ? `/station/${station.slug}` : "/");
+    document.title = station ? `${station.name} · The Art of SDLC` : "The Art of SDLC";
   }, []);
 
   const toggleComplete = useCallback(
@@ -98,6 +140,8 @@ export function Journey({ lessons, availableIds, routeStationId, children }: Pro
       const rankUp = store.complete(station.slug, availableSlugs);
       track({ name: "station_completed", station: station.id });
 
+      // Sent each time Phase 1 becomes complete, so an undo and redo counts again. Analytics counts
+      // unique sessions for this KPI, so repeats don't inflate it.
       const phase1 = availableIds.filter((id) => stationById(id)?.phase === 1);
       const done = useProgress.getState().completed;
       if (station.phase === 1 && phase1.every((id) => done.includes(slugOf(id)!))) {
@@ -121,6 +165,28 @@ export function Journey({ lessons, availableIds, routeStationId, children }: Pro
     [lessons, available, completedSlugs, toggleComplete],
   );
 
+  // "/" opens search from anywhere on the map (not while typing or inside a dialog).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      if (el instanceof HTMLInputElement || el?.closest('[role="dialog"]')) return;
+      e.preventDefault();
+      setDialog("search");
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const jumpTo = useCallback((id: number) => {
+    jumped.current = true;
+    setDialog(null);
+    mapRef.current?.goTo(id);
+  }, []);
+
+  const toolButton =
+    "fixed top-3 z-10 flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300";
+
   return (
     <LessonData value={lessonData}>
       <SpaceMap
@@ -132,16 +198,71 @@ export function Journey({ lessons, availableIds, routeStationId, children }: Pro
         onStationChange={onStationChange}
         onPanelChange={onPanelChange}
         LessonView={JourneyLesson}
+        ref={mapRef}
+        controls={
+          <>
+            {/* In the hero band's top corners, so they never cover the map or the title. */}
+            <button
+              ref={searchButton}
+              type="button"
+              data-no-pan
+              onClick={() => setDialog("search")}
+              aria-keyshortcuts="/"
+              className={`${toolButton} left-3`}
+            >
+              <span aria-hidden="true">🔍</span>
+              <span className="sr-only sm:not-sr-only">Search</span>
+              <kbd className="hidden rounded border border-slate-600 px-1 font-mono text-xs text-muted sm:inline">
+                /
+              </kbd>
+            </button>
+            <button
+              ref={kbButton}
+              type="button"
+              data-no-pan
+              onClick={() => setDialog("kb")}
+              className={`${toolButton} right-3`}
+            >
+              <span aria-hidden="true">📚</span>
+              <span className="sr-only sm:not-sr-only">Knowledge base</span>
+            </button>
+            <ProgressHud
+              rank={highestRank /* a rank is never lost */}
+              done={completedIds.length}
+              total={availableIds.length}
+              onReset={() => useProgress.getState().reset()}
+            />
+          </>
+        }
       >
         {children}
       </SpaceMap>
 
-      <ProgressHud
-        rank={highestRank /* a rank is never lost */}
-        done={completedIds.length}
-        total={availableIds.length}
-        onReset={() => useProgress.getState().reset()}
-      />
+      {dialog === "search" && (
+        <SearchDialog
+          availableIds={availableIds}
+          onSelect={jumpTo}
+          onClose={() => setDialog(null)}
+          returnFocusTo={() => {
+            // After a jump, focus belongs to the astronaut (on its new station), not the button.
+            const astronaut = document.querySelector<HTMLElement>('[data-testid="astronaut"]');
+            const target = jumped.current ? astronaut : searchButton.current;
+            jumped.current = false;
+            return target;
+          }}
+        />
+      )}
+      {dialog === "kb" && (
+        <KnowledgeBase
+          articles={articles}
+          onClose={() => setDialog(null)}
+          returnFocusTo={() => kbButton.current}
+        />
+      )}
+
+      {hydrated && !onboardingSeen && routeStationId === undefined && (
+        <Onboarding mapRef={mapRef} onDone={() => useProgress.getState().finishOnboarding()} />
+      )}
 
       {celebrating && rankIndex(celebrating) > 0 && (
         <Celebration

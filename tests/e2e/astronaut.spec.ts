@@ -121,7 +121,7 @@ test.describe("astronaut", () => {
     page,
   }) => {
     await openMap(page);
-    await page.mouse.click(200, 900); // empty space: focus is on the page, not the astronaut
+    await page.mouse.click(1000, 120); // empty space: focus is on the page, not the astronaut
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
     expect(await current(page)).toBe(3);

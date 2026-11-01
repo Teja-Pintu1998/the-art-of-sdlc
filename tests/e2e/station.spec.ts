@@ -18,7 +18,7 @@ async function seedProgress(page: Page, completed: string[], lastStation: string
           "aos-progress",
           JSON.stringify({
             version: 1,
-            state: { completed: c, lastStation: l, highestRank: "intern", onboardingSeen: false },
+            state: { completed: c, lastStation: l, highestRank: "intern", onboardingSeen: true },
           }),
         );
       }
@@ -61,6 +61,23 @@ test.describe("station pages and lessons (AOS-4)", () => {
     await expect(page.getByTestId("lesson-pending")).toBeVisible();
     await page.getByRole("button", { name: "Close station" }).click();
     await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("nothing on the map sits on top of an open lesson", async ({ page }) => {
+    await visit(page, "/station/problem-statement");
+    const covered = await page.evaluate(() =>
+      ["Search", "Knowledge base"].map((label) => {
+        const b = [...document.querySelectorAll("button")].find((el) =>
+          el.textContent?.includes(label),
+        )!;
+        const r = b.getBoundingClientRect();
+        const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return !b.contains(top);
+      }),
+    );
+    expect(covered).toEqual([true, true]);
+    await page.getByRole("button", { name: "Close station" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("feedback prompt thanks the learner", async ({ page }) => {

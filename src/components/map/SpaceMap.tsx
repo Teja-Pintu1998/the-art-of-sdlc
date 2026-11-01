@@ -5,8 +5,10 @@ import {
   type ComponentType,
   type KeyboardEvent,
   type ReactNode,
+  type Ref,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
@@ -67,6 +69,22 @@ type Props = {
   onPanelChange?: (id: number | null) => void;
   /** The panel body for a station. `goTo` moves the astronaut to another station, panel still open. */
   LessonView?: ComponentType<LessonViewProps>;
+  /**
+   * On-map controls (toolbar, progress box). Rendered inside the map's layer so the station panel
+   * covers them, and inert while it's open.
+   */
+  controls?: ReactNode;
+  /** Lets search and onboarding move the astronaut and find stations on screen (AOS-6). */
+  ref?: Ref<MapHandle>;
+};
+
+export type MapHandle = {
+  /** Flies the astronaut to a station (panning if needed) and shows its card. */
+  goTo: (id: number) => void;
+  /** A station's current position on screen, in CSS pixels. */
+  screenOf: (id: number) => Point;
+  /** The station the astronaut is on. */
+  currentStation: () => number;
 };
 
 export type LessonViewProps = { station: Station; goTo: (id: number) => void };
@@ -108,6 +126,8 @@ export function SpaceMap({
   onStationChange,
   onPanelChange,
   LessonView,
+  controls,
+  ref,
 }: Props) {
   const reducedMotion = usePrefersReducedMotion();
   const reducedRef = useRef(reducedMotion);
@@ -318,6 +338,22 @@ export function SpaceMap({
       applyView();
     },
     [ax, ay, applyView, isLocked, openCard, centerInMap],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      goTo: (id: number) => {
+        moveTo(id);
+        astroRef.current?.focus();
+      },
+      screenOf: (id: number) => {
+        const st = PLACED_STATIONS[id - 1]!;
+        return toScreen(view.current, st.x, st.y);
+      },
+      currentStation: () => currentRef.current,
+    }),
+    [moveTo],
   );
 
   /** Snap back to the current station without changing anything else (drop in empty space). */
@@ -699,6 +735,8 @@ export function SpaceMap({
         inert={panelOpen}
         onNavigate={(w) => setView(centerInMap(w.x, w.y, view.current.s))}
       />
+
+      {controls && <div inert={panelOpen}>{controls}</div>}
 
       <div
         ref={overlayRef}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Hero } from "@/components/Hero";
 import { Journey } from "@/components/Journey";
+import { loadKnowledgeBase } from "@/lib/content/knowledge-base";
 import { loadLessons } from "@/lib/content/lessons";
 import { STATIONS, V1_STATION_IDS } from "@/lib/map/stations";
 
@@ -31,7 +32,12 @@ export default async function StationPage({ params }: PageProps<"/station/[slug]
   if (!station) notFound();
   return (
     <main className="h-dvh overflow-hidden">
-      <Journey lessons={loadLessons()} availableIds={V1_STATION_IDS} routeStationId={station.id}>
+      <Journey
+        lessons={loadLessons()}
+        articles={loadKnowledgeBase()}
+        availableIds={V1_STATION_IDS}
+        routeStationId={station.id}
+      >
         <Hero />
       </Journey>
     </main>

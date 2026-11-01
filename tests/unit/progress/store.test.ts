@@ -45,9 +45,10 @@ describe("progress store (AOS-5)", () => {
     state().complete("a", AVAILABLE);
     state().visit("a");
     expect(saved()).toMatchObject({ version: 1, state: { completed: ["a"], lastStation: "a" } });
+    state().finishOnboarding();
     state().reset();
-    expect(state()).toMatchObject(INITIAL_PROGRESS);
-    expect(saved().state).toEqual(INITIAL_PROGRESS);
+    expect(state()).toMatchObject({ ...INITIAL_PROGRESS, onboardingSeen: true });
+    expect(saved().state).toEqual({ ...INITIAL_PROGRESS, onboardingSeen: true });
   });
 });
 

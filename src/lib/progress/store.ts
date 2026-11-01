@@ -28,6 +28,7 @@ type ProgressActions = {
   uncomplete: (slug: string) => void;
   visit: (slug: string) => void;
   reset: () => void;
+  finishOnboarding: () => void;
 };
 
 export const INITIAL_PROGRESS: ProgressData = {
@@ -70,7 +71,9 @@ export const useProgress = create<ProgressData & ProgressActions>()(
       },
       uncomplete: (slug) => set({ completed: get().completed.filter((s) => s !== slug) }),
       visit: (slug) => set({ lastStation: slug }),
-      reset: () => set({ ...INITIAL_PROGRESS }),
+      // Progress only: someone who has seen the intro doesn't need it again after a reset.
+      reset: () => set({ ...INITIAL_PROGRESS, onboardingSeen: get().onboardingSeen }),
+      finishOnboarding: () => set({ onboardingSeen: true }),
     }),
     {
       name: PROGRESS_KEY,
