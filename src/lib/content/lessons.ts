@@ -155,10 +155,12 @@ export function parseLesson(raw: string, file: string): Lesson {
 }
 
 let cache: Record<number, Lesson> | null = null;
+/** Cache only in production builds; in `next dev`, edited lessons show on the next page refresh. */
+const useCache = process.env.NODE_ENV === "production";
 
 /** All lessons, keyed by station id. Read once per build. */
 export function loadLessons(dir = CONTENT_DIR): Record<number, Lesson> {
-  if (cache && dir === CONTENT_DIR) return cache;
+  if (useCache && cache && dir === CONTENT_DIR) return cache;
   const lessons: Record<number, Lesson> = {};
   for (const name of readdirSync(dir).sort()) {
     if (!name.endsWith(".md")) continue;
@@ -166,6 +168,6 @@ export function loadLessons(dir = CONTENT_DIR): Record<number, Lesson> {
     if (lessons[lesson.id]) throw new Error(`${name}: station ${lesson.id} already has a lesson`);
     lessons[lesson.id] = lesson;
   }
-  if (dir === CONTENT_DIR) cache = lessons;
+  if (useCache && dir === CONTENT_DIR) cache = lessons;
   return lessons;
 }
