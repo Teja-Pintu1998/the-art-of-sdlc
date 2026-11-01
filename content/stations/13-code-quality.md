@@ -9,7 +9,7 @@ next: "The code passes every local check. Next, a teammate reviews it in a pull 
 
 Code-quality tooling catches problems **automatically**, so humans don't have to:
 
-- **Linter (ESLint for JavaScript and TypeScript):** finds likely bugs and bad patterns, such as unused variables, a forgotten `await`, or React hooks used incorrectly.
+- **Linter (ESLint for JavaScript and TypeScript):** finds likely bugs and bad patterns, such as unused variables, React hooks used incorrectly or, with type-aware rules, an unhandled promise.
 - **Formatter (Prettier):** rewrites code into one consistent style: spacing, quotes, line length. Nobody argues about style again.
 - **Type checker (TypeScript):** catches type errors before the code runs.
 - **Pre-commit hooks (Husky):** run these checks automatically when you commit, so problems never leave your laptop.
@@ -41,7 +41,7 @@ QuickBite's Sam is finishing the delivery-slot picker and runs `git commit`.
 
 The **pre-commit hook** runs ESLint and Prettier on the 4 staged files, and **blocks the commit**:
 
-- **A missing `await`:** `reserveSlot(orderId, slot)` was called without `await` (the TypeScript rule `no-floating-promises`). The checkout would have continued before the slot was reserved, so two customers could get the last 12:45 slot. A real bug, caught in about 2 seconds.
+- **A missing `await`:** `reserveSlot(orderId, slot)` was called without `await`. QuickBite enables type-aware linting, so the rule `@typescript-eslint/no-floating-promises` flags it. The checkout would have continued before the slot was reserved, so two customers could get the last 12:45 slot. A real bug, caught in about 2 seconds.
 - **An unused import** left over from an experiment.
 - **Formatting:** Prettier fixes it automatically, with nothing to discuss in review.
 
@@ -59,7 +59,7 @@ Sam fixes the `await`, commits again, and everything passes. The pull request th
 
 "I want problems caught as early and as cheaply as possible, so I automate code quality in layers.
 
-A **linter** like ESLint catches likely bugs: unused variables, misused React hooks, or a forgotten `await` on an async call. A **formatter** like Prettier makes the style consistent, so nobody debates spacing in code review. **TypeScript** in strict mode catches type errors before the code runs.
+A **linter** like ESLint catches likely bugs: unused variables, misused React hooks and, with type-aware rules, a forgotten `await` on an async call. A **formatter** like Prettier makes the style consistent, so nobody debates spacing in code review. **TypeScript** in strict mode catches type errors before the code runs.
 
 These checks run in three places: in the editor as I type, in a **pre-commit hook** with Husky and lint-staged on just the staged files so it stays fast, and again in **CI** so nobody can skip them. I treat warnings as errors; otherwise they pile up until everyone ignores them.
 

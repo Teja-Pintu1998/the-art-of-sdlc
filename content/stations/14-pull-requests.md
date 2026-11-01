@@ -38,7 +38,7 @@ Sam opens a PR for QuickBite's story **S1**: *"feat(checkout): choose a delivery
 
 Reviewer **Priya** leaves three comments:
 
-1. 🔴 **Blocker:** *"Slots are generated in the server's time zone (UTC), but the PRD says the delivery address's time zone. A customer in Lisbon would see 11:45 for a 12:45 slot. Can we pass the address's time zone in, and add a test?"*
+1. 🔴 **Blocker:** *"Slots are generated in the server's time zone (UTC), but the PRD says the delivery address's time zone. A customer in Berlin who picks 12:45 gets an order due at 12:45 UTC, which is 13:45 in Berlin. Can we pass the address's time zone in, and add a test?"*
 2. 🟡 **Suggestion:** *"`getSlots()` and `isSlotOpen()` duplicate the opening-hours logic. Extract one helper?"*
 3. 🟢 **Nit:** *"`s` → `slot` for readability."*
 

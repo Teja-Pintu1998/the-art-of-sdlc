@@ -29,10 +29,11 @@ Containers aren't virtual machines: they share the host's operating system kerne
 ## How it works in big companies
 
 - **CI builds the image** after the tests pass on `main`, and pushes it to a private registry.
-- **Tags are immutable and traceable:**
+- **Tags are traceable, and treated as immutable:**
   - each image is tagged with the **Git commit SHA** (`:3f9c2ab`), so you always know exactly which code is running
   - releases may also get a version tag (`:1.4.0`)
   - **`:latest` is never used for deployments**, because it changes silently
+  - tags can be overwritten by default, so teams turn on **tag immutability** in the registry, or deploy by **digest** (`@sha256:…`), which can never change
 - **Small, secure images:**
   - **multi-stage builds:** one stage compiles the code, and a slim final stage contains only what's needed to run it
   - a minimal base image (Alpine, distroless or a slim variant)
@@ -85,7 +86,7 @@ A Dockerfile with several stages: one builds the app with all the tools, and the
 
 ### How should images be tagged?
 
-With something immutable and traceable, usually the Git commit SHA, plus an optional release version. Avoid deploying `:latest`, which changes silently and makes rollbacks unreliable.
+With something traceable, usually the Git commit SHA, plus an optional release version, and with tag immutability on in the registry (or deploy by digest). Avoid `:latest`, which changes silently.
 
 ### How do you handle configuration and secrets with containers?
 

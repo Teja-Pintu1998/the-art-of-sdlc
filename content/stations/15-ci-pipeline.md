@@ -56,7 +56,7 @@ Sam's PR for QuickBite's slot picker triggers the pipeline:
 | E2E: Chrome, Safari, Firefox (in parallel) | ❌ Safari failed |
 | Dependency security scan | ✅ 1 min |
 
-**The Safari failure is real:** the date picker parsed `"2026-11-03 12:45"`, a format Safari doesn't parse reliably. The fix is to build dates from ISO 8601 strings (`2026-11-03T12:45`). Without a browser matrix in CI, this would have been found by customers.
+**The Safari failure is real:** the date picker parsed `"2026-11-03 12:45"`. The JavaScript standard only guarantees ISO 8601 formats, so other strings are up to each browser, and Safari rejected this one. The fix is an ISO string with an explicit offset (`2026-11-03T12:45+01:00`), which also keeps the delivery address's time zone. Without a browser matrix in CI, this would have been found by customers.
 
 **A second problem, a week later:** one checkout E2E test fails about 1 run in 20 for no clear reason. The team **quarantines** it (it still runs, but doesn't block merges), finds that it clicks before the page has loaded, fixes the wait, and restores it within two days.
 
@@ -109,7 +109,7 @@ Our pipeline is [`.github/workflows/ci.yml`](https://github.com/Teja-Pintu1998/t
 1. **Quality:** format, lint, types, unit tests with at least 80% coverage and no drop from the baseline, and a production build.
 2. **E2E** on Chromium, WebKit (Safari) and Firefox.
 3. **Visual regression:** screenshots compared at 4 zoom levels.
-4. **Lighthouse:** performance at least 90, page load (LCP) under 2.5 seconds.
+4. **Lighthouse:** performance at least 90, and the largest content shown within 2.5 seconds (LCP).
 5. **Security:** a dependency vulnerability scan.
 
-Dependabot proposes dependency updates, CodeQL scans the code, and outdated runs are cancelled when new commits arrive. **Our trade-off:** for speed, CI runs on pull requests and `main`. During stories we run the same suite locally (`npm run test:all`).
+Dependabot proposes dependency updates, CodeQL scans the code, and outdated runs are cancelled when new commits arrive. **Our trade-off:** for speed, CI runs on pull requests and `main`. During stories we run most of the same checks locally: unit, E2E on Chromium and WebKit, and visual tests (`npm run test:all`), with lint and formatting in the pre-commit hook.

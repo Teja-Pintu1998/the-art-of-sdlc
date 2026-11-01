@@ -54,7 +54,7 @@ Two weeks later, a slot bug appears. `git log` and `git blame` on the slot code 
 
 - **Long-lived branches** that drift and end in painful merges. Seniors keep branches small and merge often.
 - **Huge commits with messages like "fixes".** Seniors make each commit one logical change with a clear *why*.
-- **Rewriting shared history** (`push --force` on `main`). Seniors only rewrite their own branches, and use `--force-with-lease`, which refuses if someone else pushed.
+- **Rewriting shared history** (`push --force` on `main`). Seniors only rewrite their own branches, and use `--force-with-lease`, which refuses if the remote changed since their last fetch.
 - **Secrets committed by accident.** Seniors use `.gitignore` and secret-scanning hooks, and rotate any leaked key.
 - **Panic when something breaks.** Seniors use `git revert` to undo fast, and `git bisect` to find the commit that caused it.
 
@@ -72,7 +72,7 @@ And I'm strict about secrets: they never go into Git, and if one ever leaks, it 
 
 ### What's the difference between merge and rebase?
 
-Merge joins two branches with a merge commit and keeps both histories as they happened. Rebase replays your commits on top of another branch, giving a straight history. I rebase my own branch to stay current, but never rebase shared history.
+Merge joins two branches, with a merge commit unless it can simply fast-forward, and keeps history as it happened. Rebase replays your commits on top of another branch, giving a straight history. I rebase my own branch to stay current, but never rebase shared history.
 
 ### What's the difference between git revert and git reset?
 
@@ -95,4 +95,4 @@ Rotate the credential immediately, because removing the commit doesn't help: clo
 - **Protected `main`:** pull request required, 7 required CI checks, linear history only, and the rules apply to admins too.
 - **Commit messages** use Conventional Commits with the story ID, e.g. `feat(map): ... (AOS-2.3)`.
 - **The first pull requests were squash-merged** into `main`. Then, for speed, the PO chose to work on a `develop` branch with one commit per task, pushed to GitHub as a backup, and one final PR into `main`.
-- **A real recovery:** a script once truncated `SpaceMap.tsx` mid-task. `git checkout` restored the last committed version in seconds. That's why we commit small and often.
+- **Small, separate commits:** each task is its own commit (for example, every lesson you're reading has one), so any single change can be reviewed or reverted on its own.

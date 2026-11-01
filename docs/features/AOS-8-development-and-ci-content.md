@@ -24,7 +24,25 @@ All pass the build-time rules (3–5 min, 150–200 word answer, at least 5 ques
 - **The dev server is used for PO previews** (live reload); lessons are cached only in production.
 - Tests that used an unwritten station now simulate one, so they hold as lessons are added.
 
+## Review fixes
+
+Code review: REQUEST CHANGES, with 1 🔴, all fixed:
+- 🔴 **Focus left the panel after "Try again".** The lesson area is now a stable focus target, and a test checks it.
+- **Opening a station always retries,** so a failed background prefetch shows "Loading" rather than a stale error.
+- **The starting station is prefetched too.**
+- **`/lessons/<unknown>` returns 404** without touching the file system.
+- **Lesson accuracy:**
+  - `@typescript-eslint/no-floating-promises` needs type-aware linting
+  - the time-zone example now uses Berlin (Lisbon is UTC+0 in winter)
+  - Docker tags are mutable unless the registry enforces it (or you deploy by digest)
+  - only ISO date strings are guaranteed in JavaScript
+  - fast-forward merges, and `--force-with-lease` semantics
+  - LCP wording, and what `test:all` covers
+  - an unverifiable claim in #10 was replaced
+
 ## Follow-ups
 
 - [ ] **PO sign-off** of lessons 10, 13, 14, 15 and 17.
 - [ ] Update #17's "How we did it" after AOS-1.6 (Docker).
+- [ ] AOS-1.6: copy `content/` into the standalone image, and test that `/lessons/<unwritten>` returns 404 there (review 🟡).
+- [ ] 🟢 Announce the loading state more reliably for screen readers (the `aria-busy` wrapper is in place; check with VoiceOver).
