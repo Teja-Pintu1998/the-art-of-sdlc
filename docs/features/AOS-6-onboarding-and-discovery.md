@@ -2,7 +2,7 @@
 
 > **As a** first-time or returning learner, **I want** help getting started and quick ways to find topics, **so that** I can use the map easily and cram before an interview.
 
-**Status:** built on `develop` (Sprint 3).
+**Status:** built on `develop` (Sprint 3). Code review: **APPROVE** (no blockers); suggestions applied (see "Review fixes").
 
 ## What was built
 
@@ -26,6 +26,23 @@
 | Unit tests | Search ranking (name first, all words, numbers, ordering), knowledge-base parsing and the 4 required topics, and in jsdom: the / shortcut, ↑↓/Enter/click/hover, no-match message, focus return, the knowledge base, and the intro's timing, Skip, Next, end-on-move, station links and reduced motion. **176/176** pass; coverage above baseline |
 | E2E (Chromium + WebKit) | Intro shows for a new visitor and never again after Skip; it reaches step 3 by about 7s (clock-controlled); moving ends it; "canary" + Enter lands on #29 below the hero with focus on the astronaut; knowledge base works by keyboard, closes with Escape, and axe is clean; toolbar doesn't overlap the title at 375px; nothing sits over an open lesson. **90/90** pass |
 | Visual regression | 4 baselines updated (toolbar buttons); stable over 2 runs. Tests mark the intro as seen through Playwright `storageState`, except `discovery.spec.ts` |
+
+## Review fixes
+
+- **"/" no longer opens search over an open lesson** (when focus had fallen to the page). It's blocked while any dialog is open, and while typing in any field.
+- **The intro pauses** while hovered or focused (WCAG 2.2.1, timing adjustable). With reduced motion, the hand stays still but still tracks the astronaut when the map moves.
+- **Search always has a live status:** "N stations" is read out as you type, and "No station matches" when nothing does.
+- **Safari:** the default disclosure triangle is hidden on knowledge-base topics.
+- **Content accuracy:**
+  - The sprint is itself a Scrum event, and the review is a working session.
+  - Time boxes are scaled from the Scrum Guide.
+  - The Definition of Ready isn't part of the Scrum Guide.
+  - In Jira, a Task sits at the same level as a Story, and a Sub-task is a child.
+  - SLO (internal target) is distinguished from SLA (contract).
+- **Hardening:**
+  - Content rules find sections by heading, not by position.
+  - Knowledge-base titles and summaries are checked for "years".
+  - Duplicate article names fail the build.
 
 ## Follow-ups
 

@@ -11,7 +11,7 @@ In a big company, almost no feature ships within one team. QuickBite's "Schedule
 
 - **API contracts:** agree the request and response format (for example as an **OpenAPI** spec) before either side builds. Then both teams can work in parallel against mocks.
 - **Design docs / RFCs:** a short written proposal that other teams review before you build something that affects them.
-- **SLAs and SLOs:** what the other service promises, such as availability and response time, so you can design for its failures.
+- **SLOs and SLAs:** an **SLO** is a service's internal target (e.g. 99.9% of requests succeed); an **SLA** is a contractual promise to customers, usually with penalties. Knowing them lets you design for the other service's failures.
 
 **Communicate through the right channel:** a shared Slack channel or ticket for day-to-day work, a sync meeting for blockers, and the **escalation path** (your manager, then theirs) only when a blocker threatens a date. Escalating is normal. Escalating as a surprise isn't.
 

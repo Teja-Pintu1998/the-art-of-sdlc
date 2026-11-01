@@ -60,7 +60,7 @@ export function ModalDialog({
     }
     if (e.key !== "Tab") return;
     const focusable = ref.current?.querySelectorAll<HTMLElement>(
-      "button:not([disabled]), [href], input, summary, [tabindex]:not([tabindex='-1'])",
+      "button:not([disabled]), [href], input:not([disabled]):not([type='hidden']), summary, [tabindex]:not([tabindex='-1'])",
     );
     if (!focusable || focusable.length === 0) return;
     const first = focusable[0]!;

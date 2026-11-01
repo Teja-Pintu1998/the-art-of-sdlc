@@ -29,16 +29,19 @@ const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 export function Onboarding({ mapRef, onDone }: Props) {
   const reduced = usePrefersReducedMotion();
   const [step, setStep] = useState(0);
+  // Auto-advance pauses while the learner reads or uses the card (WCAG 2.2.1 Timing Adjustable).
+  const [paused, setPaused] = useState(false);
   const handRef = useRef<HTMLDivElement>(null);
   const last = step === STEPS.length - 1;
 
   useEffect(() => {
-    if (reduced || last) return;
+    if (reduced || last || paused) return;
     const t = setTimeout(() => setStep((s) => s + 1), STEP_MS);
     return () => clearTimeout(t);
-  }, [reduced, last, step]);
+  }, [reduced, last, step, paused]);
 
-  // The hand follows the stations even if the map is panned, so it's positioned every frame.
+  // The hand follows the stations even if the map is panned, so it's positioned every frame. With
+  // reduced motion it doesn't animate, but it still tracks the astronaut.
   useEffect(() => {
     let raf = 0;
     const startedAt = performance.now();
@@ -52,7 +55,7 @@ export function Onboarding({ mapRef, onDone }: Props) {
         const t = reduced ? 0 : ease(Math.min(1, ((now - startedAt) % (DRAG_MS + 800)) / DRAG_MS));
         hand.style.transform = `translate3d(${a.x + (b.x - a.x) * t}px, ${a.y + (b.y - a.y) * t}px, 0)`;
       }
-      if (!reduced) raf = requestAnimationFrame(frame);
+      raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
@@ -74,6 +77,10 @@ export function Onboarding({ mapRef, onDone }: Props) {
         aria-labelledby="onboarding-title"
         data-testid="onboarding"
         data-no-pan
+        onPointerEnter={() => setPaused(true)}
+        onPointerLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}
         className="fixed bottom-[210px] left-1/2 z-10 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-accent/60 bg-slate-900/95 p-4 shadow-xl lg:bottom-6"
       >
         <h2

@@ -71,8 +71,7 @@ describe("station panel (AOS-4.2)", () => {
     expect(within(panel).queryByRole("button", { name: /Previous/ })).toBeNull();
     fireEvent.click(within(panel).getByRole("button", { name: /Next/ }));
     expect(screen.getByRole("dialog")).toHaveTextContent("#2 PRD creation");
-    expect(screen.getByTestId("lesson-pending")).toBeInTheDocument();
-    expect(markButton()).toBeDisabled();
+    expect(markButton()).toBeEnabled();
     expect(window.location.pathname).toBe("/station/prd");
     expect(useProgress.getState().lastStation).toBe("prd");
 
@@ -183,7 +182,31 @@ describe("start station (AOS-4.3, AOS-5.2)", () => {
 
 const canaryId = STATIONS.find((s) => s.slug === "canary")!.id;
 
+describe("a lesson still being written", () => {
+  it("says so and can't be completed", () => {
+    renderJourney(7);
+    fireEvent.click(screen.getByRole("button", { name: /Next/ }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("#10");
+    expect(screen.getByTestId("lesson-pending")).toBeInTheDocument();
+    expect(markButton()).toBeDisabled();
+  });
+});
+
 describe("search / quick jump (AOS-6.2)", () => {
+  it('"/" does nothing while a lesson is open, even with focus on the page', () => {
+    openStation1();
+    act(() => (document.activeElement as HTMLElement).blur());
+    fireEvent.keyDown(document.body, { key: "/" });
+    expect(screen.queryByTestId("search-dialog")).toBeNull();
+  });
+
+  it("announces the number of results", () => {
+    renderJourney();
+    fireEvent.click(screen.getByRole("button", { name: /Search/ }));
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "29" } });
+    expect(screen.getByRole("status")).toHaveTextContent("1 station");
+  });
+
   it('"/" opens search; typing "canary" and Enter moves the astronaut there', () => {
     renderJourney();
     fireEvent.keyDown(document.body, { key: "/" });
@@ -276,6 +299,22 @@ describe("onboarding intro (AOS-6.1)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start exploring" }));
     expect(screen.queryByTestId("onboarding")).toBeNull();
     expect(useProgress.getState().onboardingSeen).toBe(true);
+  });
+
+  it("pauses while the learner hovers or focuses the card", () => {
+    vi.useFakeTimers();
+    renderJourney();
+    const intro = screen.getByTestId("onboarding");
+    fireEvent.pointerEnter(intro);
+    act(() => vi.advanceTimersByTime(8000));
+    expect(intro).toHaveTextContent("1/3");
+    fireEvent.pointerLeave(intro);
+    fireEvent.focus(screen.getByRole("button", { name: "Next" }));
+    act(() => vi.advanceTimersByTime(8000));
+    expect(intro).toHaveTextContent("1/3");
+    fireEvent.blur(screen.getByRole("button", { name: "Next" }));
+    act(() => vi.advanceTimersByTime(3500));
+    expect(intro).toHaveTextContent("2/3");
   });
 
   it("Skip ends it, and Next steps through by hand", () => {

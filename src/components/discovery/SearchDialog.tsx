@@ -101,11 +101,12 @@ export function SearchDialog({ availableIds, onSelect, onClose, returnFocusTo }:
           );
         })}
       </ul>
-      {results.length === 0 && (
-        <p role="status" className="mt-3 text-base text-muted">
-          No station matches “{query}”.
-        </p>
-      )}
+      {/* Always present, so screen readers announce changes (a newly inserted live region often isn't). */}
+      <p role="status" className={results.length === 0 ? "mt-3 text-base text-muted" : "sr-only"}>
+        {results.length === 0
+          ? `No station matches “${query}”.`
+          : `${results.length} station${results.length === 1 ? "" : "s"}`}
+      </p>
       <p className="mt-3 text-xs text-muted">↑ ↓ to choose · Enter to jump · Esc to close</p>
     </ModalDialog>
   );

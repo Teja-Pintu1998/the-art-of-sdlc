@@ -170,7 +170,9 @@ export function Journey({ lessons, availableIds, articles, routeStationId, child
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "/" || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
       const el = document.activeElement;
-      if (el instanceof HTMLInputElement || el?.closest('[role="dialog"]')) return;
+      const typing = el?.matches("input, textarea, select, [contenteditable]");
+      // Not while any dialog is open, even if focus fell to <body> (e.g. over an open lesson).
+      if (typing || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
       e.preventDefault();
       setDialog("search");
     };

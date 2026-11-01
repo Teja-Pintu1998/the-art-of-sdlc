@@ -31,6 +31,24 @@ describe("knowledge base (AOS-6.3)", () => {
   });
 });
 
+describe("loadKnowledgeBase", () => {
+  it("rejects two articles with the same name", async () => {
+    const { mkdtempSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const path = await import("node:path");
+    const dir = mkdtempSync(path.join(tmpdir(), "aos-kb-"));
+    writeFileSync(path.join(dir, "01-jira.md"), ok);
+    writeFileSync(path.join(dir, "02-jira.md"), ok);
+    expect(() => loadKnowledgeBase(dir)).toThrow(/two articles named "jira"/);
+  });
+
+  it("checks the title and summary for years of experience too", () => {
+    expect(() => parseArticle(ok.replace("title: T", "title: For 5 years"), "a.md")).toThrow(
+      /years/,
+    );
+  });
+});
+
 describe("frontmatter safety", () => {
   it("never runs JavaScript frontmatter", () => {
     const js = '---js\n{ title: (globalThis.__pwned = true, "T"), summary: "S" }\n---\nBody';

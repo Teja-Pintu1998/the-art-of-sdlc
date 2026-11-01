@@ -3,16 +3,18 @@ title: Agile ceremonies
 summary: The Scrum events every team runs, what each is for, and what interviewers expect you to know.
 ---
 
-Most product teams work in **sprints**: short, fixed cycles (usually two weeks) that end with working software. **Scrum** defines a small set of events, often called *ceremonies*, that keep the team aligned.
+Most product teams work in **sprints**: short, fixed cycles (usually two weeks) that end with working software. In **Scrum**, the sprint is itself an event: the container for four others, often called *ceremonies*, that keep the team aligned.
 
 | Event | When | Purpose | Time box (2-week sprint) |
 |---|---|---|---|
 | **Sprint planning** | Start of the sprint | Agree the sprint goal and pick the backlog items that serve it | Up to 4 hours |
 | **Daily scrum (stand-up)** | Every day | Inspect progress towards the goal and surface blockers | 15 minutes |
-| **Sprint review** | End of the sprint | Demo what was built to stakeholders and adapt the backlog | Up to 2 hours |
+| **Sprint review** | End of the sprint | Inspect the outcome with stakeholders (a working session, not just a demo) and adapt the backlog | Up to 2 hours |
 | **Sprint retrospective** | After the review | Improve *how* the team works | Up to 1.5 hours |
 
-**Backlog refinement** (grooming) isn't a formal Scrum event, but almost every team does it: the Product Owner and developers clarify, split and estimate upcoming stories so they meet the **Definition of Ready**.
+Time boxes are scaled down from the Scrum Guide's limits for a one-month sprint.
+
+**Backlog refinement** (grooming) isn't a formal Scrum event, but almost every team does it: the Product Owner and developers clarify, split and estimate upcoming stories. Many teams add a **Definition of Ready** (a common practice, not part of the Scrum Guide).
 
 **Roles:** the **Product Owner** owns the backlog and its priorities, the **Scrum Master** protects the process and removes blockers, and the **Developers** (everyone building, including QA) own how the work gets done.
 

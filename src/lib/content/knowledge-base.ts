@@ -26,7 +26,7 @@ export function parseArticle(raw: string, file: string): Article {
   const title = text("title");
   const summary = text("summary");
   if (content.trim() === "") throw new Error(`${file}: the article is empty`);
-  const years = content.match(YEARS_OF_EXPERIENCE);
+  const years = [title, summary, content].join("\n").match(YEARS_OF_EXPERIENCE);
   if (years) throw new Error(`${file}: mentions years of experience ("${years[0]}")`);
   return {
     slug: file.replace(/^\d+-/, "").replace(/\.md$/, ""),
@@ -38,8 +38,12 @@ export function parseArticle(raw: string, file: string): Article {
 
 /** All articles, in file-name order. */
 export function loadKnowledgeBase(dir = KB_DIR): Article[] {
-  return readdirSync(dir)
+  const articles = readdirSync(dir)
     .filter((name) => name.endsWith(".md"))
     .sort()
     .map((name) => parseArticle(readFileSync(path.join(dir, name), "utf8"), name));
+  const slugs = articles.map((a) => a.slug);
+  const dup = slugs.find((s, i) => slugs.indexOf(s) !== i);
+  if (dup) throw new Error(`knowledge base: two articles named "${dup}"`);
+  return articles;
 }

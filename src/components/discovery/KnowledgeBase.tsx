@@ -47,7 +47,7 @@ export function KnowledgeBase({ articles, onClose, returnFocusTo }: Props) {
             data-testid="kb-article"
             className="group rounded-xl border border-slate-700 bg-slate-900/60"
           >
-            <summary className="cursor-pointer list-none rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:outline-yellow-300">
+            <summary className="cursor-pointer list-none rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:outline-yellow-300 [&::-webkit-details-marker]:hidden">
               <span className="font-heading text-lg font-semibold">
                 <span
                   aria-hidden="true"

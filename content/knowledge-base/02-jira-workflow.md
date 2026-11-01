@@ -9,7 +9,8 @@ summary: How work items move from idea to done, and how tickets connect to code.
 
 - **Epic:** a large feature, such as *QuickBite "Schedule your order"*.
 - **Story:** a user-facing slice of it: *"As an office worker, I can pick a delivery time."*
-- **Task / sub-task:** technical work needed to deliver a story.
+- **Task:** work that isn't a user story, such as an upgrade or a configuration change. It sits at the same level as a story.
+- **Sub-task:** a step inside a story or task, such as "build the slot API".
 - **Bug:** something that doesn't work as specified.
 
 **A typical workflow:** To Do → In Progress → In Review → In QA → Done. Teams customise the statuses, but each one should mean something clear, with exit rules. For example, nothing reaches *Done* until it meets the **Definition of Done** (tested, reviewed, merged, deployed).

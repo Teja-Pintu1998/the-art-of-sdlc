@@ -24,8 +24,9 @@ export function searchStations(query: string, availableIds: readonly number[]): 
   const q = norm(query).trim();
   if (q === "") return STATIONS.filter((s) => availableIds.includes(s.id)).slice(0, MAX_RESULTS);
   const words = q.split(/\s+/);
+  const byNumber = /^\d+$/.test(q);
   const scored = INDEX.flatMap(({ station, name, all }) => {
-    if (/^\d+$/.test(q)) return String(station.id) === q ? [{ station, score: 0 }] : [];
+    if (byNumber) return String(station.id) === q ? [{ station, score: 0 }] : [];
     if (!words.every((w) => all.includes(w))) return [];
     const score =
       (name.startsWith(q)

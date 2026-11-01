@@ -58,7 +58,7 @@ test.describe("station pages and lessons (AOS-4)", () => {
     await expect(page).toHaveURL(/\/station\/problem-statement$/);
     await page.getByRole("button", { name: /Next/ }).click();
     await expect(page).toHaveURL(/\/station\/prd$/);
-    await expect(page.getByTestId("lesson-pending")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText("PRD creation");
     await page.getByRole("button", { name: "Close station" }).click();
     await expect(page).toHaveURL(/\/$/);
   });

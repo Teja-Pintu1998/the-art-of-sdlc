@@ -64,7 +64,10 @@ export const READING_WPM = 238;
 export const READING_MINUTES = { min: 3, max: 5 } as const;
 export const ANSWER_WORDS = { min: 150, max: 200 } as const;
 export const MIN_QUESTIONS = 5;
-/** The product never ties seniority to a number of years (PO rule). */
+/**
+ * The product never ties seniority to a number of years (PO rule). Catches digits ("5 years",
+ * "3 yrs") and the phrase itself; spelled-out numbers are left to the PO's content review.
+ */
 export const YEARS_OF_EXPERIENCE = /\byears? of experience\b|\b\d+\+?\s*(?:years|yrs)\b/i;
 
 /** Words a reader reads: tokens that start with a letter, digit or currency sign (not Markdown). */
@@ -78,13 +81,14 @@ function checkContentRules(file: string, sections: string[], all: string) {
       `${file}: reading time is ${minutes.toFixed(1)} min; it must be ${READING_MINUTES.min}–${READING_MINUTES.max} min`,
     );
   }
-  const answer = countWords(sections[5]!);
+  const at = (h: (typeof SECTION_HEADINGS)[number]) => sections[SECTION_HEADINGS.indexOf(h)]!;
+  const answer = countWords(at("Say this in your interview"));
   if (answer < ANSWER_WORDS.min || answer > ANSWER_WORDS.max) {
     throw new Error(
       `${file}: "Say this in your interview" has ${answer} words; it must be ${ANSWER_WORDS.min}–${ANSWER_WORDS.max}`,
     );
   }
-  const questions = sections[6]!.match(/^### /gm)?.length ?? 0;
+  const questions = at("Interview questions you'll get").match(/^### /gm)?.length ?? 0;
   if (questions < MIN_QUESTIONS) {
     throw new Error(`${file}: ${questions} interview questions; at least ${MIN_QUESTIONS} needed`);
   }
