@@ -47,6 +47,8 @@ const slugOf = (id: number) => stationById(id)?.slug;
 
 /** One request per lesson, shared by prefetching and opening. */
 const lessonRequests = new Map<string, Promise<Lesson>>();
+/** For tests: forget shared requests so each test starts clean. */
+export const clearLessonRequests = () => lessonRequests.clear();
 export function fetchLesson(slug: string): Promise<Lesson> {
   let request = lessonRequests.get(slug);
   if (!request) {
@@ -76,7 +78,8 @@ const LessonData = createContext<LessonData | null>(null);
 function JourneyLesson({ station, goTo }: LessonViewProps) {
   const { lessons, lessonIds, failed, ensureLesson, available, completedSlugs, toggleComplete } =
     use(LessonData)!;
-  useEffect(() => ensureLesson(station.id), [ensureLesson, station.id]);
+  // Opening always (re)tries, so an old failed prefetch shows "Loading", not an error.
+  useEffect(() => ensureLesson(station.id, true), [ensureLesson, station.id]);
   const i = available.findIndex((s) => s.id === station.id);
   const lesson = lessons[station.id];
   const status = lesson
@@ -169,8 +172,11 @@ export function Journey({
       return routeStationId;
     }
     const last = useProgress.getState().lastStation;
-    return last ? idOfSlug(last) : undefined;
-  }, [routeStationId]);
+    const start = last ? idOfSlug(last) : undefined;
+    // Prefetch where the astronaut starts, so the first "Enter station" is instant too.
+    if (start) ensureLesson(start);
+    return start;
+  }, [routeStationId, ensureLesson]);
 
   const onStationChange = useCallback(
     (id: number) => {

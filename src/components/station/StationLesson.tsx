@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { INTERVIEW_SECTIONS, type Lesson } from "@/lib/content/sections";
 import { type Station } from "@/lib/map/stations";
@@ -43,6 +43,7 @@ export function StationLesson({
   onGoTo,
 }: Props) {
   const [interviewMode, setInterviewMode] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const sections = lesson
     ? interviewMode
       ? lesson.sections.filter((s) => INTERVIEW_SECTIONS.includes(s.heading))
@@ -53,58 +54,70 @@ export function StationLesson({
     <div className="mt-4">
       <p className="text-base text-slate-300">{station.summary}</p>
 
-      {lesson ? (
-        <>
-          <p className="mt-4 border-l-2 border-accent pl-3 text-base text-slate-300 italic">
-            <span className="font-semibold not-italic">Where we are: </span>
-            {lesson.where}
-          </p>
-
-          <button
-            type="button"
-            aria-pressed={interviewMode}
-            onClick={() => setInterviewMode((m) => !m)}
-            className="mt-4 rounded-full border border-slate-600 px-3 py-1 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300 aria-pressed:border-accent aria-pressed:text-accent"
-          >
-            🎤 Interview mode {interviewMode ? "on" : "off"}
-          </button>
-
-          {sections.map((s) => (
-            <section key={s.heading} aria-labelledby={sectionId(s.heading)} className="mt-8">
-              <h3 id={sectionId(s.heading)} className="font-heading text-xl font-bold">
-                {s.heading}
-              </h3>
-              <div className="lesson mt-3" dangerouslySetInnerHTML={{ __html: s.html }} />
-            </section>
-          ))}
-
-          {!interviewMode && (
-            <p className="mt-8 border-l-2 border-accent pl-3 text-base text-slate-300 italic">
-              <span className="font-semibold not-italic">Next: </span>
-              {lesson.next}
+      {/* A stable focus target: the content swaps between loading, error and the lesson. */}
+      <div
+        ref={contentRef}
+        tabIndex={-1}
+        aria-busy={status === "loading"}
+        className="focus:outline-none"
+      >
+        {lesson ? (
+          <>
+            <p className="mt-4 border-l-2 border-accent pl-3 text-base text-slate-300 italic">
+              <span className="font-semibold not-italic">Where we are: </span>
+              {lesson.where}
             </p>
-          )}
-        </>
-      ) : status === "loading" ? (
-        <p data-testid="lesson-loading" role="status" className="mt-6 text-base text-muted">
-          Loading the lesson…
-        </p>
-      ) : status === "error" ? (
-        <div data-testid="lesson-error" role="alert" className="mt-6 rounded-xl bg-slate-900 p-4">
-          <p className="text-base">The lesson couldn&apos;t be loaded. Check your connection.</p>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300"
-          >
-            Try again
-          </button>
-        </div>
-      ) : (
-        <p data-testid="lesson-pending" className="mt-6 rounded-xl bg-slate-900 p-4 text-base">
-          ✍️ This lesson is being written and arrives in a later release.
-        </p>
-      )}
+
+            <button
+              type="button"
+              aria-pressed={interviewMode}
+              onClick={() => setInterviewMode((m) => !m)}
+              className="mt-4 rounded-full border border-slate-600 px-3 py-1 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300 aria-pressed:border-accent aria-pressed:text-accent"
+            >
+              🎤 Interview mode {interviewMode ? "on" : "off"}
+            </button>
+
+            {sections.map((s) => (
+              <section key={s.heading} aria-labelledby={sectionId(s.heading)} className="mt-8">
+                <h3 id={sectionId(s.heading)} className="font-heading text-xl font-bold">
+                  {s.heading}
+                </h3>
+                <div className="lesson mt-3" dangerouslySetInnerHTML={{ __html: s.html }} />
+              </section>
+            ))}
+
+            {!interviewMode && (
+              <p className="mt-8 border-l-2 border-accent pl-3 text-base text-slate-300 italic">
+                <span className="font-semibold not-italic">Next: </span>
+                {lesson.next}
+              </p>
+            )}
+          </>
+        ) : status === "loading" ? (
+          <p data-testid="lesson-loading" className="mt-6 text-base text-muted">
+            Loading the lesson…
+          </p>
+        ) : status === "error" ? (
+          <div data-testid="lesson-error" role="alert" className="mt-6 rounded-xl bg-slate-900 p-4">
+            <p className="text-base">The lesson couldn&apos;t be loaded. Check your connection.</p>
+            <button
+              type="button"
+              onClick={() => {
+                // The button unmounts while retrying; keep focus inside the dialog.
+                contentRef.current?.focus();
+                onRetry();
+              }}
+              className="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <p data-testid="lesson-pending" className="mt-6 rounded-xl bg-slate-900 p-4 text-base">
+            ✍️ This lesson is being written and arrives in a later release.
+          </p>
+        )}
+      </div>
 
       <button
         type="button"

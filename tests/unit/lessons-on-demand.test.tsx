@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, generateStaticParams } from "@/app/lessons/[slug]/route";
-import { Journey } from "@/components/Journey";
+import { Journey, clearLessonRequests } from "@/components/Journey";
 import { loadLessons } from "@/lib/content/lessons";
 import { STATIONS, V1_STATION_IDS } from "@/lib/map/stations";
 import { INITIAL_PROGRESS, useProgress } from "@/lib/progress/store";
@@ -36,6 +36,7 @@ describe("lessons load on demand", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
     localStorage.clear();
+    clearLessonRequests();
     useProgress.setState({ ...INITIAL_PROGRESS, onboardingSeen: true });
     fetchMock = vi.fn(async (url: string) => {
       const slug = url.split("/").pop();
@@ -90,14 +91,13 @@ describe("lessons load on demand", () => {
   });
 
   it("offers a retry when loading fails", async () => {
-    // Station 3: not fetched by earlier tests (requests are shared per page load).
     fetchMock.mockImplementationOnce(async () => new Response("{}", { status: 500 }));
     renderHome();
     act(() => astronaut().focus());
-    fireEvent.keyDown(astronaut(), { key: "ArrowRight" });
-    fireEvent.keyDown(astronaut(), { key: "ArrowRight" }); // lands on #3: the prefetch fails
-    fireEvent.keyDown(astronaut(), { key: "Enter" });
+    fireEvent.keyDown(astronaut(), { key: "Enter" }); // opening station 1: the request fails
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    // Focus stays inside the dialog while the button is replaced (review 🔴).
+    expect(screen.getByRole("dialog")).toContainElement(document.activeElement as HTMLElement);
     expect(await screen.findByRole("heading", { name: "What it is" })).toBeInTheDocument();
   });
 });

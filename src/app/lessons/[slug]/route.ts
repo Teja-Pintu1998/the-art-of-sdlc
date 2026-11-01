@@ -13,7 +13,12 @@ export function generateStaticParams() {
 }
 
 export async function GET(_request: Request, { params }: RouteContext<"/lessons/[slug]">) {
-  const lesson = lessonBySlug((await params).slug);
+  const { slug } = await params;
+  // Unknown addresses never touch the file system.
+  if (!STATIONS.some((s) => s.slug === slug)) {
+    return Response.json({ error: "No such station" }, { status: 404 });
+  }
+  const lesson = lessonBySlug(slug);
   if (!lesson) return Response.json({ error: "No lesson for this station" }, { status: 404 });
   return Response.json(lesson);
 }
