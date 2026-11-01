@@ -52,6 +52,6 @@
 
 - [ ] Search could also find knowledge-base articles.
 - [ ] Rename the CI check "Lighthouse (… LCP < 2.5s)" to "< 3s" together with `main`'s branch-protection required checks (it's required by exact name).
-- [ ] 🟡 (QA-fix review: APPROVE) E2E for the pre-hydration behaviour: block `/_next/static/chunks/**`, then check a returning visitor's card is hidden (`html[data-onboarded]`) and a new visitor's is visible. Current E2E only runs after hydration.
+- [x] 🟡 (QA-fix review: APPROVE, done in QA as P3) E2E for the pre-hydration behaviour: block `/_next/static/chunks/**`, then check a returning visitor's card is hidden (`html[data-onboarded]`) and a new visitor's is visible. Current E2E only runs after hydration.
 - [ ] 🟢 Move `onboardedScript` and the storage constants into a small module, so the root layout doesn't pull zustand into the server graph.
 - [ ] 🟢 Skip/Next are visible before hydration; clicks in that short window on slow phones are dropped (the map isn't interactive yet either).

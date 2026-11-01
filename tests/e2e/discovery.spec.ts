@@ -24,6 +24,36 @@ test.describe("onboarding intro (AOS-6.1)", () => {
     await expect(intro).toHaveCount(0);
   });
 
+  // The LCP fix (QA, Sprint 5): the card is in the server HTML, so it shows before JavaScript loads.
+  // Blocking the app's script chunks (not its CSS, which lives in the same folder) freezes the page
+  // in that pre-hydration state.
+  const withoutJs = (page: Page) =>
+    page.route(/\/_next\/static\/chunks\/.*\.js(\?|$)/, (r) => r.abort());
+
+  test("is visible before JavaScript loads, for a fast first paint", async ({ page }) => {
+    await withoutJs(page);
+    await page.goto("/");
+    await expect(page.getByTestId("onboarding")).toBeVisible();
+    await expect(page.getByTestId("onboarding")).toContainText("Drag the astronaut");
+  });
+
+  test("never flashes for a returning visitor, even before JavaScript loads", async ({ page }) => {
+    await page.addInitScript(() => {
+      const state = {
+        completed: [],
+        lastStation: null,
+        highestRank: "intern",
+        onboardingSeen: true,
+      };
+      localStorage.setItem("aos-progress", JSON.stringify({ state, version: 1 }));
+    });
+    await withoutJs(page);
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-onboarded", "");
+    await expect(page.getByTestId("onboarding")).toBeHidden();
+    await expect(page.getByTestId("onboarding-hand")).toBeHidden();
+  });
+
   test("takes about 10 seconds to reach its last step", async ({ page }) => {
     await page.clock.install();
     await visit(page);
