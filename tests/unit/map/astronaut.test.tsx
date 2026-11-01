@@ -353,3 +353,63 @@ describe("recommended next (AOS-3.5)", () => {
     expect(planet(5)).toHaveAttribute("data-recommended", "false");
   });
 });
+
+describe("review fixes (AOS-3)", () => {
+  it("scrolling inside the open panel neither zooms the map nor blocks the scroll", () => {
+    renderMap();
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    act(() => astronaut().focus());
+    key("Enter");
+    const dialog = screen.getByRole("dialog");
+    const wheel = new WheelEvent("wheel", { deltaY: -200, bubbles: true, cancelable: true });
+    fireEvent(dialog, wheel);
+    expect(api().getView()).toEqual({ x: 0, y: 0, s: 1 });
+    expect(wheel.defaultPrevented).toBe(false);
+  });
+
+  it("makes everything behind the open panel inert", () => {
+    renderMap();
+    act(() => astronaut().focus());
+    key("ArrowRight"); // opens the card
+    key("Enter");
+    expect(astronaut()).toHaveAttribute("inert");
+    expect(screen.getByTestId("preview-card")).toHaveAttribute("inert");
+    expect(screen.getByTestId("mini-map")).toHaveAttribute("inert");
+    key("Escape");
+    expect(astronaut()).not.toHaveAttribute("inert");
+  });
+
+  it("Escape closes the panel even when focus fell out of it", () => {
+    renderMap();
+    act(() => astronaut().focus());
+    key("Enter");
+    act(() => (document.activeElement as HTMLElement).blur());
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(astronaut()).toHaveFocus();
+  });
+
+  it("a cancelled drag returns home instead of snapping", () => {
+    renderMap();
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    const from = screenOf(1);
+    const to = screenOf(2);
+    pointer("pointerdown", astronaut(), from);
+    pointer("pointermove", astronaut(), to);
+    pointer("pointercancel", astronaut(), to);
+    pointer("pointerup", astronaut(), to); // already ended: ignored
+    expect(current()).toBe(1);
+  });
+
+  it("announces the first and last station when an arrow can't go further", () => {
+    renderMap();
+    act(() => astronaut().focus());
+    key("ArrowLeft");
+    expect(screen.getByTestId("announcer")).toHaveTextContent("This is the first station.");
+    renderMap({ currentStationId: 42 });
+    const last = screen.getAllByTestId("astronaut")[1]!;
+    act(() => last.focus());
+    fireEvent.keyDown(last, { key: "ArrowRight" });
+    expect(screen.getAllByTestId("announcer")[1]).toHaveTextContent("This is the last station.");
+  });
+});

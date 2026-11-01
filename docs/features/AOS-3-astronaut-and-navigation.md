@@ -2,7 +2,7 @@
 
 > **As a** learner (mouse, keyboard or touch), **I want** to move an astronaut between stations, **so that** exploring the SDLC feels like a journey.
 
-**Status:** built on `develop` (Sprint 1). Code review runs in the background; any blockers are fixed in a follow-up commit.
+**Status:** built on `develop` (Sprint 1). Code review: 1 blocker found and fixed (see "Review fixes").
 
 ## What was built
 
@@ -44,9 +44,22 @@
 - **Benchmark the baseline on the same day.** The AOS-2 figure (58.3 at 20×) came from a different machine state; the same build measured 54 today. Comparing against a stale number would have hidden or exaggerated the regression. Re-measure the previous build side by side (`git stash`, build, bench, `git stash pop`).
 - **Profile before optimising.** My first guesses (the pulse ring and the glow filter) changed little. Hiding elements one at a time showed the full-screen starfield redraw was the real cost.
 
+## Review fixes
+
+- 🔴 **Wheel events inside the open panel zoomed the map and blocked panel scrolling.** The wheel handler now ignores `[data-no-pan]` targets (the panel, card and mini-map). A regression test checks that the view is unchanged and `defaultPrevented` is false.
+- **Everything behind the panel is `inert`** while it is open. Escape works even if focus fell to `<body>`.
+- **A cancelled drag** (or lost pointer capture) returns the astronaut home instead of snapping it to a station.
+- **The arrow keys announce** "first station" or "last station" at the ends.
+
+## Lessons
+
+- **jsdom doesn't implement `inert`, but real browsers do.** After adding `inert`, closing the panel returned focus to nothing, because the astronaut was still inert when `focus()` ran. Only the Playwright E2E test caught it. Focus now moves after the re-render. Keep focus-return checks in E2E, not only in unit tests.
+
 ## Follow-ups
 
 - [ ] Decide in AOS-4 whether station summaries stay only in the manifest or move into the MDX frontmatter (and are validated against it).
 - [ ] The starfield still redraws (at 30 fps) when nothing moves. Pause it when the tab is hidden (`visibilitychange`) to save battery.
 - [ ] Keyboard and tap moves recentre the map instantly; a short animated pan would feel smoother (skip it with reduced motion).
 - [ ] Linux visual baselines and Firefox E2E are verified at final integration (CI).
+- [ ] Screen readers may read the station twice per move (the astronaut's changing `aria-label` plus the live region). Consider a static label with `aria-describedby`.
+- [ ] Stop in-flight snap springs on unmount (`ax.stop()` / `ay.stop()`). This is harmless today, but tidier.

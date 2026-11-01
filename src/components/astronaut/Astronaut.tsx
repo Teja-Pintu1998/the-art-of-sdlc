@@ -7,14 +7,18 @@ import { isTap } from "@/lib/map/navigation";
 /** On-screen size (px). The astronaut keeps this size at every zoom level. */
 export const ASTRONAUT_SIZE = 56;
 
+/** How a press on the astronaut ended: a tap/click, a drag-and-drop, or a cancelled gesture. */
+export type DragResult = "tap" | "drop" | "cancel";
+
 type Props = {
   elRef: Ref<HTMLDivElement>;
+  /** Not interactive while a modal dialog is open. */
+  inert?: boolean;
   label: string;
   /** Screen movement since the drag started (SpaceMap converts it to world units). */
   onDragStart: () => void;
   onDragMove: (dx: number, dy: number) => void;
-  /** `tapped` is true when the pointer barely moved (a click or tap, not a drag). */
-  onDragEnd: (tapped: boolean) => void;
+  onDragEnd: (result: DragResult) => void;
   onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
 };
 
@@ -22,7 +26,15 @@ type Props = {
  * The draggable astronaut. Uses its own pointer handling instead of Framer Motion's `drag`, which
  * drifts from the cursor inside a zoomed map (spike 3.3). Keyboard: see SpaceMap.
  */
-export function Astronaut({ elRef, label, onDragStart, onDragMove, onDragEnd, onKeyDown }: Props) {
+export function Astronaut({
+  elRef,
+  inert,
+  label,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
+  onKeyDown,
+}: Props) {
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
 
   const down = (e: PointerEvent<HTMLDivElement>) => {
@@ -40,7 +52,14 @@ export function Astronaut({ elRef, label, onDragStart, onDragMove, onDragEnd, on
     const s = start.current;
     if (!s || s.id !== e.pointerId) return;
     start.current = null;
-    onDragEnd(isTap(s, { x: e.clientX, y: e.clientY }));
+    onDragEnd(isTap(s, { x: e.clientX, y: e.clientY }) ? "tap" : "drop");
+  };
+  // A cancelled gesture (or lost capture) returns home instead of snapping somewhere.
+  const cancel = (e: PointerEvent<HTMLDivElement>) => {
+    const s = start.current;
+    if (!s || s.id !== e.pointerId) return;
+    start.current = null;
+    onDragEnd("cancel");
   };
 
   return (
@@ -54,7 +73,9 @@ export function Astronaut({ elRef, label, onDragStart, onDragMove, onDragEnd, on
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}
-      onPointerCancel={up}
+      onPointerCancel={cancel}
+      onLostPointerCapture={cancel}
+      inert={inert}
       onKeyDown={onKeyDown}
       className="astronaut absolute top-0 left-0 z-10 grid cursor-grab touch-none place-items-center rounded-full text-[44px] leading-none will-change-transform select-none active:cursor-grabbing"
       style={{ width: ASTRONAUT_SIZE, height: ASTRONAUT_SIZE }}

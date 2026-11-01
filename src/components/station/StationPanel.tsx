@@ -22,6 +22,15 @@ export function StationPanel({ station, phase, onClose }: Props) {
     closeRef.current?.focus();
   }, []);
 
+  // Escape must work even if a click on plain text moved focus out of the dialog (to <body>).
+  useEffect(() => {
+    const onDocKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape" && !panelRef.current?.contains(document.activeElement)) onClose();
+    };
+    document.addEventListener("keydown", onDocKey);
+    return () => document.removeEventListener("keydown", onDocKey);
+  }, [onClose]);
+
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.stopPropagation();

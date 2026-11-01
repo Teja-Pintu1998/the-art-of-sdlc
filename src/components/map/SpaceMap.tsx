@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 
-import { ASTRONAUT_SIZE, Astronaut } from "@/components/astronaut/Astronaut";
+import { ASTRONAUT_SIZE, Astronaut, type DragResult } from "@/components/astronaut/Astronaut";
 import { PreviewCard } from "@/components/astronaut/PreviewCard";
 import { StationPanel } from "@/components/station/StationPanel";
 import { drawMiniMap, type MiniStation } from "@/lib/map/draw";
@@ -291,10 +291,19 @@ export function SpaceMap({
     setPanelOpen(true);
   }, [isLocked, openCard]);
 
+  // Focus returns to the astronaut *after* the re-render that removes `inert` from it:
+  // browsers refuse to focus an inert element.
+  const refocusAstronaut = useRef(false);
   const closePanel = useCallback(() => {
+    refocusAstronaut.current = true;
     setPanelOpen(false);
-    astroRef.current?.focus();
   }, []);
+  useEffect(() => {
+    if (!panelOpen && refocusAstronaut.current) {
+      refocusAstronaut.current = false;
+      astroRef.current?.focus();
+    }
+  }, [panelOpen]);
 
   // Opening view: fit the current station's phase, below the landing overlay. Runs before paint.
   useLayoutEffect(() => {
@@ -390,6 +399,8 @@ export function SpaceMap({
     const up = (e: PointerEvent) => release(e, false);
     const cancel = (e: PointerEvent) => release(e, true);
     const wheel = (e: WheelEvent) => {
+      // Let the panel, card and mini-map scroll normally; only the map background zooms.
+      if (e.target instanceof Element && e.target.closest("[data-no-pan]")) return;
       e.preventDefault();
       const delta = e.deltaY * (e.deltaMode === 1 ? LINE_HEIGHT_PX : 1);
       view.current = zoomAt(
@@ -448,9 +459,13 @@ export function SpaceMap({
     ax.set(o.x + dx / s);
     ay.set(o.y + dy / s);
   };
-  const onDragEnd = (tapped: boolean) => {
+  const onDragEnd = (result: DragResult) => {
     dragOrigin.current = null;
-    if (tapped) {
+    if (result === "cancel") {
+      returnHome();
+      return;
+    }
+    if (result === "tap") {
       returnHome();
       openCard();
       return;
@@ -463,7 +478,12 @@ export function SpaceMap({
     const delta = arrowDelta(e.key);
     if (delta !== 0) {
       e.preventDefault();
-      moveTo(stepStation(currentRef.current, delta, STATIONS.length));
+      const next = stepStation(currentRef.current, delta, STATIONS.length);
+      if (next === currentRef.current) {
+        setAnnouncement(delta < 0 ? "This is the first station." : "This is the last station.");
+        return;
+      }
+      moveTo(next);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       enterStation();
@@ -486,7 +506,7 @@ export function SpaceMap({
       <Starfield getView={getView} reducedMotion={reducedMotion} />
 
       {/* Visual map. Screen readers get the journey overview and the astronaut instead. */}
-      <div ref={layerRef} aria-hidden="true" style={{ opacity: 0 }}>
+      <div ref={layerRef} aria-hidden="true" inert={panelOpen} style={{ opacity: 0 }}>
         <svg className="map-path pointer-events-none absolute inset-0 h-full w-full">
           <path ref={glowRef} className="map-path-glow" />
           <path ref={pathRef} data-testid="map-path" className="map-path-line" />
@@ -553,6 +573,7 @@ export function SpaceMap({
 
       <Astronaut
         elRef={astroRef}
+        inert={panelOpen}
         label={astronautLabel(current)}
         onDragStart={onDragStart}
         onDragMove={onDragMove}
@@ -566,6 +587,7 @@ export function SpaceMap({
           phase={currentPhase}
           locked={isLocked(current.id)}
           cardRef={cardRef}
+          inert={panelOpen}
           onEnter={enterStation}
           onClose={() => closeCard(true)}
         />
@@ -573,10 +595,15 @@ export function SpaceMap({
 
       <MiniMap
         canvasRef={miniRef}
+        inert={panelOpen}
         onNavigate={(w) => setView(centerOn(w.x, w.y, view.current.s, viewportSize()))}
       />
 
-      <div ref={overlayRef} className="pointer-events-none absolute inset-x-0 top-0">
+      <div
+        ref={overlayRef}
+        inert={panelOpen}
+        className="pointer-events-none absolute inset-x-0 top-0"
+      >
         {children}
       </div>
 

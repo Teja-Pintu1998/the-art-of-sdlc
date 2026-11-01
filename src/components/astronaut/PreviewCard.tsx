@@ -10,6 +10,8 @@ type Props = {
   locked: boolean;
   /** SpaceMap positions the card beside the planet on every view change. */
   cardRef: Ref<HTMLDivElement>;
+  /** Not interactive while a modal dialog is open. */
+  inert?: boolean;
   onEnter: () => void;
   onClose: () => void;
 };
@@ -18,7 +20,7 @@ type Props = {
  * Shown when the astronaut lands on a station (SC-2): name, one-line summary and "Enter station →".
  * Locked stations show "Coming soon" instead of the button.
  */
-export function PreviewCard({ station, phase, locked, cardRef, onEnter, onClose }: Props) {
+export function PreviewCard({ station, phase, locked, cardRef, inert, onEnter, onClose }: Props) {
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.stopPropagation();
@@ -34,6 +36,7 @@ export function PreviewCard({ station, phase, locked, cardRef, onEnter, onClose 
       role="group"
       aria-labelledby="preview-card-title"
       onKeyDown={onKeyDown}
+      inert={inert}
       className="absolute top-0 left-0 w-72 cursor-default rounded-xl border border-slate-600 bg-slate-900/95 p-4 shadow-xl"
       style={{ borderColor: phase.color }}
     >

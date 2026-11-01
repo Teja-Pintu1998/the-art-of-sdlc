@@ -12,13 +12,15 @@ type Props = {
   canvasRef: Ref<HTMLCanvasElement>;
   /** Called with the clicked world point. */
   onNavigate: (world: Point) => void;
+  /** Not interactive while a modal dialog is open. */
+  inert?: boolean;
 };
 
 /**
  * Overview of the whole journey with the current viewport. Clicking moves the map there.
  * Keyboard users navigate with the astronaut (AOS-3), so the canvas itself is decorative.
  */
-export function MiniMap({ canvasRef, onNavigate }: Props) {
+export function MiniMap({ canvasRef, onNavigate, inert }: Props) {
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
@@ -40,6 +42,7 @@ export function MiniMap({ canvasRef, onNavigate }: Props) {
       width={MINI_MAP_SIZE.w * 2}
       height={MINI_MAP_SIZE.h * 2}
       onPointerDown={onPointerDown}
+      inert={inert}
       className="absolute right-4 bottom-4 cursor-pointer rounded-lg border border-slate-700 bg-[#0b1023cc]"
       style={{ width: MINI_MAP_SIZE.w, height: MINI_MAP_SIZE.h }}
     />
