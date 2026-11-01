@@ -9,6 +9,7 @@ import {
   PARALLAX,
   seededRandom,
   STAR_FIELD,
+  TWINKLE_GROUPS,
 } from "@/lib/map/draw";
 import { WORLD } from "@/lib/map/layout";
 
@@ -17,6 +18,7 @@ function fakeCtx() {
   const ctx = {
     clearRect: vi.fn(),
     beginPath: vi.fn(),
+    moveTo: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(() => alphas.push(ctx.globalAlpha)),
     strokeRect: vi.fn(),
@@ -48,12 +50,14 @@ describe("seeded stars", () => {
       expect(s.x).toBeLessThan(STAR_FIELD.w);
       expect(s.y).toBeLessThan(STAR_FIELD.h);
       expect(s.r).toBeGreaterThan(0.29);
+      expect(s.group).toBeGreaterThanOrEqual(0);
+      expect(s.group).toBeLessThan(TWINKLE_GROUPS);
     }
   });
 });
 
 describe("drawStars", () => {
-  const stars = [{ x: 10, y: 20, r: 1, phase: 0.5 }];
+  const stars = [{ x: 10, y: 20, r: 1, group: 0 }];
   const size = { w: 100, h: 100 };
   const view = { x: 200, y: -400, s: 1 };
 
@@ -61,7 +65,9 @@ describe("drawStars", () => {
     const { ctx, alphas } = fakeCtx();
     drawStars(ctx, stars, size, { time: 0, view, motion: true });
     drawStars(ctx, stars, size, { time: 700, view, motion: true });
-    expect(alphas[0]).not.toBe(alphas[1]);
+    // One fill per twinkle group (not per star); group 0's brightness changes over time.
+    expect(ctx.fill).toHaveBeenCalledTimes(2 * TWINKLE_GROUPS);
+    expect(alphas[0]).not.toBe(alphas[TWINKLE_GROUPS]);
     // parallax offset, wrapped into the canvas
     expect(ctx.arc).toHaveBeenCalledWith(
       (10 + 200 * PARALLAX) % 100,
@@ -77,7 +83,7 @@ describe("drawStars", () => {
     const { ctx, alphas } = fakeCtx();
     drawStars(ctx, stars, size, { time: 0, view, motion: false });
     drawStars(ctx, stars, size, { time: 700, view: { x: 0, y: 0, s: 1 }, motion: false });
-    expect(alphas).toEqual([0.7, 0.7]);
+    expect(new Set(alphas)).toEqual(new Set([0.7]));
     expect(ctx.arc).toHaveBeenNthCalledWith(1, 10, 20, 1, 0, Math.PI * 2);
     expect(ctx.arc).toHaveBeenNthCalledWith(2, 10, 20, 1, 0, Math.PI * 2);
   });
@@ -107,5 +113,25 @@ describe("mini-map", () => {
   it("converts a click into world coordinates", () => {
     expect(miniMapToWorld(120, 41, mini)).toEqual({ x: WORLD.w / 2, y: WORLD.h / 2 });
     expect(miniMapToWorld(0, 0, mini)).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe("drawStars batching", () => {
+  it("draws each star as its own circle inside its group's single fill", () => {
+    const { ctx } = fakeCtx();
+    const stars = [
+      { x: 10, y: 10, r: 1, group: 2 },
+      { x: 50, y: 50, r: 2, group: 2 },
+    ];
+    drawStars(
+      ctx,
+      stars,
+      { w: 100, h: 100 },
+      { time: 0, view: { x: 0, y: 0, s: 1 }, motion: false },
+    );
+    expect(ctx.moveTo).toHaveBeenNthCalledWith(1, 11, 10);
+    expect(ctx.moveTo).toHaveBeenNthCalledWith(2, 52, 50);
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    expect(ctx.fill).toHaveBeenCalledTimes(TWINKLE_GROUPS);
   });
 });

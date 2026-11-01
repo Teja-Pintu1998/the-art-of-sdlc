@@ -37,6 +37,8 @@ describe("station manifest", () => {
   });
 
   it("throws for a station with an unknown phase", () => {
-    expect(() => phaseOf({ id: 99, slug: "x", name: "x", phase: 10 })).toThrow(/unknown phase/);
+    expect(() => phaseOf({ id: 99, slug: "x", name: "x", summary: "x", phase: 10 })).toThrow(
+      /unknown phase/,
+    );
   });
 });

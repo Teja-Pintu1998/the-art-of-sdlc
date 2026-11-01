@@ -5,7 +5,7 @@ import { WORLD, type Point, type Size, type View, visibleWorldRect } from "./lay
 
 export type Ctx2D = Pick<
   CanvasRenderingContext2D,
-  "clearRect" | "beginPath" | "arc" | "fill" | "strokeRect"
+  "clearRect" | "beginPath" | "moveTo" | "arc" | "fill" | "strokeRect"
 > & {
   fillStyle: CanvasRenderingContext2D["fillStyle"];
   strokeStyle: CanvasRenderingContext2D["strokeStyle"];
@@ -13,7 +13,11 @@ export type Ctx2D = Pick<
   lineWidth: number;
 };
 
-export type Star = { x: number; y: number; r: number; phase: number };
+/** `group` is the star's twinkle group: stars in a group twinkle together and are drawn in one fill. */
+export type Star = { x: number; y: number; r: number; group: number };
+
+/** Number of twinkle groups. Drawing per group (not per star) keeps the frame cost low (AOS-3 perf fix). */
+export const TWINKLE_GROUPS = 6;
 
 /** Deterministic PRNG (mulberry32), so the starfield looks the same on every load and in screenshots. */
 export function seededRandom(seed: number): () => number {
@@ -37,7 +41,7 @@ export function makeStars(count = 500, seed = 42): Star[] {
     x: rand() * STAR_FIELD.w,
     y: rand() * STAR_FIELD.h,
     r: rand() * 1.6 + 0.3,
-    phase: rand() * 6,
+    group: Math.floor(rand() * TWINKLE_GROUPS),
   }));
 }
 
@@ -56,16 +60,22 @@ export function drawStars(
   ctx.fillStyle = "#ffffff";
   const ox = motion ? view.x * PARALLAX : 0;
   const oy = motion ? view.y * PARALLAX : 0;
-  for (const star of stars) {
-    ctx.globalAlpha = motion ? 0.4 + 0.6 * Math.abs(Math.sin(time / 900 + star.phase)) : 0.7;
+  for (let group = 0; group < TWINKLE_GROUPS; group++) {
+    ctx.globalAlpha = motion ? 0.4 + 0.6 * Math.abs(Math.sin(time / 900 + group + 0.5)) : 0.7;
     ctx.beginPath();
-    ctx.arc(wrap(star.x + ox, size.w), wrap(star.y + oy, size.h), star.r, 0, Math.PI * 2);
+    for (const star of stars) {
+      if (star.group !== group) continue;
+      const x = wrap(star.x + ox, size.w);
+      const y = wrap(star.y + oy, size.h);
+      ctx.moveTo(x + star.r, y); // start a new circle, not a line from the previous one
+      ctx.arc(x, y, star.r, 0, Math.PI * 2);
+    }
     ctx.fill();
   }
   ctx.globalAlpha = 1;
 }
 
-export type MiniStation = Point & { color: string; locked: boolean };
+export type MiniStation = Point & { color: string; locked: boolean; current?: boolean };
 
 /** Draws every station and the current viewport rectangle on the mini-map. */
 export function drawMiniMap(
@@ -78,10 +88,10 @@ export function drawMiniMap(
   const k = mini.w / WORLD.w;
   ctx.clearRect(0, 0, mini.w, mini.h);
   for (const st of stations) {
-    ctx.globalAlpha = st.locked ? 0.4 : 1;
-    ctx.fillStyle = st.color;
+    ctx.globalAlpha = st.locked && !st.current ? 0.4 : 1;
+    ctx.fillStyle = st.current ? "#ffffff" : st.color;
     ctx.beginPath();
-    ctx.arc(st.x * k, st.y * k, 2.5, 0, Math.PI * 2);
+    ctx.arc(st.x * k, st.y * k, st.current ? 4 : 2.5, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;

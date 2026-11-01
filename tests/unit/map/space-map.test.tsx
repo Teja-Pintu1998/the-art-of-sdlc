@@ -56,7 +56,7 @@ describe("SpaceMap", () => {
     expect(
       screen.getByText("Station 5: Estimation and backlog grooming (coming soon)"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Station 1: Problem statement / business case")).toBeInTheDocument();
+    expect(screen.getByText(/^Station 1: Problem statement \/ business case/)).toBeInTheDocument();
   });
 
   it("dims locked stations and marks them with a lock icon", () => {
@@ -128,15 +128,17 @@ describe("SpaceMap", () => {
 
   it("shows a teaser with the station name, plus 'Coming soon' when locked", () => {
     renderMap();
-    fireEvent.pointerEnter(planet(5));
+    fireEvent.pointerEnter(planet(5), { pointerType: "touch" }); // touch never shows the hover teaser
+    expect(screen.queryByTestId("station-teaser")).toBeNull();
+    fireEvent.pointerEnter(planet(5), { pointerType: "mouse" });
     const teaser = screen.getByTestId("station-teaser");
     expect(teaser).toHaveTextContent("#5 Estimation and backlog grooming");
     expect(teaser).toHaveTextContent("🔒 Coming soon");
     expect(teaser.style.transform).toContain("translate3d");
-    fireEvent.pointerLeave(planet(5));
+    fireEvent.pointerLeave(planet(5), { pointerType: "mouse" });
     expect(screen.queryByTestId("station-teaser")).toBeNull();
 
-    fireEvent.pointerEnter(planet(1));
+    fireEvent.pointerEnter(planet(1), { pointerType: "mouse" });
     expect(screen.getByTestId("station-teaser")).not.toHaveTextContent("Coming soon");
   });
 
@@ -177,6 +179,7 @@ describe("SpaceMap drawing (with a canvas)", () => {
     setTransform: vi.fn(),
     clearRect: vi.fn(),
     beginPath: vi.fn(),
+    moveTo: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(),
     strokeRect: vi.fn(),

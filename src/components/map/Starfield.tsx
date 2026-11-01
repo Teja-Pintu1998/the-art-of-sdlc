@@ -46,9 +46,13 @@ export function Starfield({ getView, reducedMotion }: Props) {
       return () => window.removeEventListener("resize", onResize);
     }
 
+    // Stars redraw at half the display rate: twinkle and 5%-speed parallax look identical, and it
+    // halves the starfield's cost on slow devices (AOS-3 benchmark). The map itself stays at 60fps.
     let raf = 0;
+    let odd = false;
     const frame = (time: number) => {
-      draw(time);
+      odd = !odd;
+      if (odd) draw(time);
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);

@@ -58,3 +58,44 @@ body {
     animation: none;
   }
 }
+
+/* Recommended next station (AOS-3.5): a pulsing ring. Opacity/scale only, so it stays on the compositor. */
+.planet[data-recommended="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 9999px;
+  border: 3px solid currentColor;
+  box-shadow: 0 0 18px currentColor;
+  animation: recommended-pulse 1.6s ease-in-out infinite;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+@keyframes recommended-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The astronaut: visible focus ring (≥ 3:1 against the background). */
+/* Static gradient glow (not a filter), so moving the astronaut never re-rasterises it. */
+.astronaut {
+  background: radial-gradient(circle, rgb(125 211 252 / 0.45) 0%, rgb(125 211 252 / 0) 70%);
+}
+
+.astronaut:focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planet[data-recommended="true"]::after {
+    animation: none;
+    opacity: 0.9;
+  }
+}
