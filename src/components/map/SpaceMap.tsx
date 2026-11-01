@@ -115,6 +115,16 @@ const DEFAULT_CARD: Size = { w: 288, h: 170 };
 
 const viewportSize = (): Size => ({ w: window.innerWidth, h: window.innerHeight });
 
+/**
+ * Map-wide keys (arrows, zoom) apply only when focus is on the map or nowhere, and never behind an
+ * open dialog (Search, Knowledge base): clicking plain text in a dialog drops focus to <body>.
+ */
+const keysGoToMap = (root: HTMLElement | null) => {
+  if (document.querySelector('[role="dialog"][aria-modal="true"]')) return false;
+  const focused = document.activeElement;
+  return !focused || focused === document.body || !!root?.contains(focused);
+};
+
 const astronautLabel = (st: Station) =>
   `Astronaut at station ${st.id}: ${st.name}. Use the arrow keys to move between stations and Enter to open one. Plus and minus zoom, 0 shows the whole map.`;
 
@@ -610,10 +620,8 @@ export function SpaceMap({
       if (panelOpen || e.defaultPrevented) return;
       const delta = arrowDelta(e.key);
       if (delta === 0) return;
-      const focused = document.activeElement;
-      if (focused === astroRef.current) return; // handled by onAstronautKey
-      const onMap = !focused || focused === document.body || rootRef.current?.contains(focused);
-      if (!onMap) return;
+      if (document.activeElement === astroRef.current) return; // handled by onAstronautKey
+      if (!keysGoToMap(rootRef.current)) return;
       e.preventDefault();
       stepBy(delta);
       astroRef.current?.focus();
@@ -633,8 +641,7 @@ export function SpaceMap({
       const typing =
         focused instanceof HTMLElement &&
         (focused.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName));
-      const onMap = !focused || focused === document.body || rootRef.current?.contains(focused);
-      if (typing || !onMap) return;
+      if (typing || !keysGoToMap(rootRef.current)) return;
       e.preventDefault();
       const viewport = viewportSize();
       const top = topInset.current;

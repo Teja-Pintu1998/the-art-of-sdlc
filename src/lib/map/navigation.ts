@@ -46,7 +46,7 @@ export const KEY_ZOOM_STEP = 1.25;
  */
 export function zoomKey(key: string): number | "fit" | null {
   if (key === "+" || key === "=") return KEY_ZOOM_STEP;
-  if (key === "-" || key === "_") return 1 / KEY_ZOOM_STEP;
+  if (key === "-") return 1 / KEY_ZOOM_STEP; // not "_": that is the unshifted 8 on AZERTY
   if (key === "0") return "fit";
   return null;
 }

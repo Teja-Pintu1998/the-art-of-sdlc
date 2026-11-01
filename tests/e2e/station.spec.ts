@@ -141,6 +141,22 @@ test.describe("station pages and lessons (AOS-4)", () => {
 });
 
 test.describe("progress and ranks (AOS-5)", () => {
+  test("the completed check badge is drawn above the planet, not hidden behind it", async ({
+    page,
+  }) => {
+    await seedProgress(page, ["problem-statement"]);
+    await visit(page, "/");
+    const planet = page.locator('[data-station="1"]');
+    await expect(planet).toHaveAttribute("data-completed", "true");
+    // The planet body is an absolutely positioned child; without a z-index the ✓ (::before) is
+    // painted first and the body covers it (QA review blocker).
+    const badge = await planet.evaluate((el) => {
+      const s = getComputedStyle(el, "::before");
+      return { content: s.content, zIndex: s.zIndex };
+    });
+    expect(badge).toEqual({ content: '"✓"', zIndex: "1" });
+  });
+
   test("completion is saved: survives a reload, with the badge and the last station", async ({
     page,
   }) => {

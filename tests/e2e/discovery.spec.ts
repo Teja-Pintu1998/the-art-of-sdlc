@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
+import { PROGRESS_KEY, PROGRESS_VERSION } from "../../src/lib/progress/storage";
+
 async function visit(page: Page, path = "/") {
   await page.goto(path);
   await page.waitForFunction(() => !!window.__aosMap);
@@ -38,15 +40,18 @@ test.describe("onboarding intro (AOS-6.1)", () => {
   });
 
   test("never flashes for a returning visitor, even before JavaScript loads", async ({ page }) => {
-    await page.addInitScript(() => {
-      const state = {
-        completed: [],
-        lastStation: null,
-        highestRank: "intern",
-        onboardingSeen: true,
-      };
-      localStorage.setItem("aos-progress", JSON.stringify({ state, version: 1 }));
-    });
+    await page.addInitScript(
+      ({ key, version }) => {
+        const state = {
+          completed: [],
+          lastStation: null,
+          highestRank: "intern",
+          onboardingSeen: true,
+        };
+        localStorage.setItem(key, JSON.stringify({ state, version }));
+      },
+      { key: PROGRESS_KEY, version: PROGRESS_VERSION },
+    );
     await withoutJs(page);
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-onboarded", "");

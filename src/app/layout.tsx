@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { NewRelicAgent } from "@/components/analytics/NewRelicAgent";
-import { onboardedScript } from "@/lib/progress/store";
+import { onboardedScript } from "@/lib/progress/storage";
 
 import "./globals.css";
 

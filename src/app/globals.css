@@ -60,14 +60,16 @@ body {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: calc(16px * var(--planet-inv, 1));
-  height: calc(16px * var(--planet-inv, 1));
+  width: 16px;
+  height: 16px;
   place-items: center;
   border-radius: 9999px;
-  border: calc(1.5px * var(--planet-inv, 1)) solid #cbd5e1;
+  border: 1.5px solid #cbd5e1;
   background: #0f172a;
-  font-size: calc(9px * var(--planet-inv, 1));
+  font-size: 9px;
   line-height: 1;
+  /* A transform, not sizes: zooming then needs no layout, only a recomposite. */
+  transform: scale(var(--planet-inv, 1));
 }
 .planet[data-labels="off"] .planet-lock-badge {
   display: grid;
@@ -124,6 +126,7 @@ body {
 .planet[data-completed="true"]::before {
   content: "✓";
   position: absolute;
+  z-index: 1; /* above the planet body (an absolutely positioned child) */
   top: -6px;
   right: -6px;
   display: grid;

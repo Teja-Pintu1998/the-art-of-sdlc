@@ -160,6 +160,20 @@ describe("SpaceMap", () => {
     }
   });
 
+  it("doesn't zoom or move the astronaut behind an open dialog (Search, Knowledge base)", () => {
+    renderMap();
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    const dialog = document.createElement("div");
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    document.body.append(dialog);
+    fireEvent.keyDown(document, { key: "+" });
+    fireEvent.keyDown(document, { key: "ArrowRight" });
+    expect(api().getView().s).toBe(1);
+    expect(api().getCurrentStation()).toBe(1);
+    dialog.remove();
+  });
+
   it("leaves browser zoom (Ctrl/Cmd +) and typing in text fields alone", () => {
     renderMap();
     act(() => api().setView({ x: 0, y: 0, s: 1 }));
