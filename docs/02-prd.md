@@ -7,7 +7,7 @@
 | **SDLC step** | 3. Write the PRD |
 | **Owner** | Teja (PM / PO) |
 | **Engineering** | Claude (Tech Lead) |
-| **Version** | v1.3 |
+| **Version** | v1.4 |
 | **Status** | ✅ Approved (2026-10-31) |
 | **Related** | [Kickoff](00-kickoff.md) · [Problem statement](01-problem-statement.md) · [Spike findings](03-spike-findings.md) |
 
@@ -193,13 +193,13 @@ Each station is written when we reach that step in our own build, so its "How we
 
 ### Open questions
 
-| # | Question | Decided in |
-|---|----------|------------|
-| Q1 | Which hosting provider, and can it support Docker and canary releases? | Step 12, technical design |
-| Q2 | Content files in MDX or JSON? | Step 12, technical design |
-| Q3 | Target v1 launch date | Step 9, release plan |
-| Q4 | Domain name | Before launch |
-| Q5 | Can analytics run cookie-free, or is a consent banner needed? | Step 12, technical design |
+| # | Question | Decided in | Resolution |
+|---|----------|------------|------------|
+| Q1 | Which hosting provider, and can it support Docker and canary releases? | Step 12, technical design | ✅ Google Cloud Run (ADR-4) |
+| Q2 | Content files in MDX or JSON? | Step 12, technical design | ✅ MDX, validated at build (ADR-3) |
+| Q3 | Target v1 launch date | Step 9, release plan | ✅ Mid-December 2026 |
+| Q4 | Domain name | Before launch | Open |
+| Q5 | Can analytics run cookie-free, or is a consent banner needed? | Step 12, technical design | ✅ New Relic with no cookies or browser storage, so no banner (ADR-5); verified in AOS-10.1 |
 
 ---
 
@@ -208,7 +208,7 @@ Each station is written when we reach that step in our own build, so its "How we
 v1 is ready to launch when:
 
 - [ ] All **Must have** requirements are done and accepted by the PO
-- [ ] All 14 v1 stations are fully written and reviewed against the quality bar (except the "How we did it" sections of #29 and #34, which are completed after launch)
+- [ ] All 14 v1 stations are fully written and reviewed against the quality bar (except the "How we did it" sections of #29 and #34, completed after launch, and of #27, written right after the go/no-go meeting and before the canary)
 - [ ] Test coverage ≥ 80%; all tests pass; no open P1 or P2 bugs
 - [ ] Lighthouse ≥ 90; accessibility checks pass
 - [ ] UAT signed off by the PO
@@ -236,6 +236,7 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | v1.1 | 2026-10-31 | SC-1: added station #3 (Technical feasibility / spike) to v1; 14 stations. | Teja / Claude |
 | v1.2 | 2026-10-31 | SC-2: FR-2 clarified. Landing shows a preview card, then the full panel. | Teja / Claude |
 | v1.3 | 2026-10-31 | Content clarification (no scope change): station #4 also covers the backlog lifecycle and story loop, since #5 and #6 are locked in v1. | Teja / Claude |
+| v1.4 | 2026-11-01 | Open questions Q1, Q2, Q3 and Q5 resolved (see [technical design](08-tech-design.md)); release criteria: #27's "How we did it" is written right after the go/no-go meeting. | Teja / Claude |
 
 ## PRD Review Record (Step 4)
 

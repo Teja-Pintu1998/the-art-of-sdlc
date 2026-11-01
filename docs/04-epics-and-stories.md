@@ -168,7 +168,7 @@ Each station's content is written **when we reach that step in our own build**, 
 
 | # | Task | Acceptance criteria |
 |---|------|---------------------|
-| 10.1 | KPI analytics events | Owns all analytics events: station completed, **Phase 1 completed** (all *available* Phase 1 stations, per RC-3), rank reached, feedback given (sent from 4.4); anonymous, cookie-free where possible |
+| 10.1 | KPI analytics events | Connects the analytics helper (created in Sprint 2) to New Relic; verifies in DevTools that no cookies or browser storage are written. Owns all analytics events: station completed, **Phase 1 completed** (all *available* Phase 1 stations, per RC-3), rank reached, feedback given (sent from 4.4); anonymous, cookie-free and storage-free |
 | 10.2 | New Relic + Terraform dashboard | Browser monitoring live; dashboard created from Terraform code; page actions tracked |
 | 10.3 | Alerts | Thresholds documented (starting point: JS error rate > 1% of page views, or page load p75 > 2.5s, over 15 minutes); a test alert fires and is received |
 
