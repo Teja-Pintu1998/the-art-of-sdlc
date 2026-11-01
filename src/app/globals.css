@@ -99,3 +99,143 @@ body {
     opacity: 0.9;
   }
 }
+
+/* Completed station (AOS-5.1): a green check badge on the planet. */
+.planet[data-completed="true"]::before {
+  content: "✓";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: #10b981;
+  color: #04120c;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 0 10px #10b981;
+}
+
+/* Lesson body (AOS-4.2): readable Markdown, body text ≥ 16px, nothing wider than the panel. */
+.lesson {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+}
+.lesson > * + * {
+  margin-top: 0.85rem;
+}
+.lesson h4 {
+  margin-top: 1.4rem;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.lesson ul,
+.lesson ol {
+  padding-left: 1.25rem;
+}
+.lesson ul {
+  list-style: disc;
+}
+.lesson ol {
+  list-style: decimal;
+}
+.lesson li + li {
+  margin-top: 0.35rem;
+}
+.lesson strong {
+  color: #f8fafc;
+}
+.lesson a {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+.lesson blockquote {
+  border-left: 3px solid #7dd3fc;
+  padding: 0.5rem 0.9rem;
+  background: rgb(15 23 42 / 0.8);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.lesson code {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.9em;
+  background: rgb(30 41 59);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+.lesson pre {
+  overflow-x: auto;
+}
+.lesson table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.lesson th,
+.lesson td {
+  border: 1px solid rgb(51 65 85);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Rank-up celebration (AOS-5.3): a burst, then the command types out like a terminal. */
+.typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  border-right: 2px solid currentColor;
+  animation:
+    typewriter 1.2s steps(var(--chars)) 0.3s both,
+    caret 0.8s step-end infinite;
+}
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: calc(var(--chars) * 1ch);
+  }
+}
+@keyframes caret {
+  50% {
+    border-color: transparent;
+  }
+}
+.celebration-burst {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 20%, rgb(125 211 252 / 0.35), transparent 60%);
+  animation: burst 0.9s ease-out both;
+}
+@keyframes burst {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.progress-fill {
+  transition: width 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter,
+  .celebration-burst {
+    animation: none;
+  }
+  .progress-fill {
+    transition: none;
+  }
+}

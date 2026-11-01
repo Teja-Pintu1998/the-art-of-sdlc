@@ -62,7 +62,7 @@
 
 - [ ] The map's cut-off line under the hero is a hard edge; a short fade (mask) could look softer. Check the frame-rate cost first.
 
-- [ ] Decide in AOS-4 whether station summaries stay only in the manifest or move into the MDX frontmatter (and are validated against it).
+- [x] ~~Decide where station summaries live.~~ Decided in AOS-4: only in the manifest.
 - [ ] The starfield still redraws (at 30 fps) when nothing moves. Pause it when the tab is hidden (`visibilitychange`) to save battery.
 - [ ] Keyboard and tap moves recentre the map instantly; a short animated pan would feel smoother (skip it with reduced motion).
 - [ ] Linux visual baselines and Firefox E2E are verified at final integration (CI).

@@ -1,6 +1,6 @@
 "use client";
 
-import { type KeyboardEvent, useEffect, useRef } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useRef } from "react";
 
 import { type Phase, type Station } from "@/lib/map/stations";
 
@@ -8,19 +8,26 @@ type Props = {
   station: Station;
   phase: Phase;
   onClose: () => void;
+  /** The lesson (AOS-4): sections, Mark as complete, feedback, Previous/Next. */
+  children?: ReactNode;
 };
 
 /**
- * The station panel (FR-4). This is the AOS-3 shell: a focus-trapped dialog with the station's title
- * and summary. AOS-4 fills it with the 8 content sections, feedback and "Mark as complete".
+ * The station panel (FR-4): a focus-trapped dialog with the station's title. The lesson body is
+ * passed in as children (StationLesson).
  */
-export function StationPanel({ station, phase, onClose }: Props) {
+export function StationPanel({ station, phase, onClose, children }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     closeRef.current?.focus();
   }, []);
+
+  // Previous/Next swaps the station inside the open panel: start the new lesson at the top.
+  useEffect(() => {
+    panelRef.current?.scrollTo?.({ top: 0 });
+  }, [station.id]);
 
   // Escape must work even if a click on plain text moved focus out of the dialog (to <body>).
   useEffect(() => {
@@ -68,7 +75,7 @@ export function StationPanel({ station, phase, onClose }: Props) {
         aria-modal="true"
         aria-labelledby="station-panel-title"
         onKeyDown={onKeyDown}
-        className="absolute inset-y-0 right-0 flex w-full flex-col overflow-y-auto border-l border-slate-700 bg-slate-950 p-6 shadow-2xl sm:w-[40%] sm:min-w-[24rem]"
+        className="absolute inset-y-0 right-0 flex w-full flex-col overflow-y-auto border-l border-slate-700 bg-slate-950 p-6 shadow-2xl sm:max-w-2xl"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -89,8 +96,7 @@ export function StationPanel({ station, phase, onClose }: Props) {
             ✕
           </button>
         </div>
-        <p className="mt-4 text-base text-slate-300">{station.summary}</p>
-        <p className="mt-6 text-sm text-muted">The full lesson for this station opens here soon.</p>
+        {children ?? <p className="mt-4 text-base text-slate-300">{station.summary}</p>}
       </div>
     </div>
   );

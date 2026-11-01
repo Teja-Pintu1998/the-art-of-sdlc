@@ -2,6 +2,7 @@
 
 import { animate, useMotionValue } from "framer-motion";
 import {
+  type ComponentType,
   type KeyboardEvent,
   type ReactNode,
   useCallback,
@@ -56,7 +57,19 @@ type Props = {
   completedIds?: readonly number[];
   /** Overlay shown above the map (the landing hero). The opening view keeps the phase below it. */
   children?: ReactNode;
+  /** Called once before the first paint; may return a saved station to start at instead (AOS-5.2). */
+  resolveStartStation?: () => number | undefined;
+  /** Open the start station's panel on load (or its card, if locked): `/station/[slug]` (AOS-4.3). */
+  openOnStart?: boolean;
+  /** Called whenever the astronaut lands on a station. */
+  onStationChange?: (id: number) => void;
+  /** Called when the panel opens or switches station (its id) or closes (null). Not on first load. */
+  onPanelChange?: (id: number | null) => void;
+  /** The panel body for a station. `goTo` moves the astronaut to another station, panel still open. */
+  LessonView?: ComponentType<LessonViewProps>;
 };
+
+export type LessonViewProps = { station: Station; goTo: (id: number) => void };
 
 /** Test and benchmark hook (spike method): read and set the view without simulating input. */
 export type MapApi = {
@@ -90,6 +103,11 @@ export function SpaceMap({
   availableIds,
   completedIds = NONE,
   children,
+  resolveStartStation,
+  openOnStart = false,
+  onStationChange,
+  onPanelChange,
+  LessonView,
 }: Props) {
   const reducedMotion = usePrefersReducedMotion();
   const reducedRef = useRef(reducedMotion);
@@ -126,12 +144,19 @@ export function SpaceMap({
   const [hovered, setHovered] = useState<PlacedStation | null>(null);
   const [currentId, setCurrentId] = useState(start.id);
   const [cardOpen, setCardOpen] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(false);
+  // Rendered open on the server for /station/[slug], so the lesson is in the page's HTML (SEO).
+  const [panelOpen, setPanelOpen] = useState(() => openOnStart && availableIds.includes(start.id));
   const [announcement, setAnnouncement] = useState("");
 
   // Astronaut position in world units; Framer Motion animates these for the snap spring only.
   const ax = useMotionValue(startPos.x);
   const ay = useMotionValue(startPos.y);
+
+  // Latest callbacks, for use inside stable handlers without re-subscribing.
+  const callbacks = useRef({ resolveStartStation, onStationChange, onPanelChange });
+  useLayoutEffect(() => {
+    callbacks.current = { resolveStartStation, onStationChange, onPanelChange };
+  });
 
   const isLocked = useCallback((id: number) => !availableIds.includes(id), [availableIds]);
   useEffect(() => {
@@ -268,6 +293,7 @@ export function SpaceMap({
       if (!st) return;
       currentRef.current = id;
       setCurrentId(id);
+      callbacks.current.onStationChange?.(id);
       if (reducedRef.current) {
         ax.set(st.x);
         ay.set(st.y);
@@ -328,11 +354,32 @@ export function SpaceMap({
     }
   }, [panelOpen]);
 
-  // Opening view: fit the current station's phase, below the landing overlay. Runs before paint.
+  // Report panel changes (for the address bar), skipping the initial state.
+  const reportedPanel = useRef<number | null>(panelOpen ? start.id : null);
+  useEffect(() => {
+    const id = panelOpen ? currentId : null;
+    if (id === reportedPanel.current) return;
+    reportedPanel.current = id;
+    callbacks.current.onPanelChange?.(id);
+  }, [panelOpen, currentId]);
+
+  // Opening view: the saved station (if any) and its phase, below the landing overlay. Before paint.
   useLayoutEffect(() => {
     measureTopInset();
-    view.current = fitBounds(phaseBounds(start.phase), viewportSize(), { top: topInset.current });
+    const resolved = stationById(callbacks.current.resolveStartStation?.() ?? start.id) ?? start;
+    if (resolved.id !== start.id) {
+      const p = PLACED_STATIONS[resolved.id - 1]!;
+      currentRef.current = resolved.id;
+      // Saved progress only exists in the browser, so the server renders station 1 first.
+      setCurrentId(resolved.id);
+      ax.set(p.x);
+      ay.set(p.y);
+    }
+    view.current = fitBounds(phaseBounds(resolved.phase), viewportSize(), {
+      top: topInset.current,
+    });
     applyView();
+    if (openOnStart && isLocked(start.id)) openCard();
     if (layerRef.current) layerRef.current.style.opacity = "1";
     // Only on first mount: later station changes move the astronaut, not the camera.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -590,6 +637,7 @@ export function SpaceMap({
                 data-station={st.id}
                 data-locked={locked}
                 data-recommended={st.id === recommended}
+                data-completed={completedIds.includes(st.id)}
                 onPointerEnter={(e) => e.pointerType === "mouse" && showTeaser(st)}
                 onPointerLeave={(e) => e.pointerType === "mouse" && showTeaser(null)}
                 className="planet absolute top-0 left-0 grid cursor-pointer place-items-center rounded-full font-heading text-[22px] font-bold text-white will-change-transform"
@@ -684,7 +732,11 @@ export function SpaceMap({
         </ol>
       </section>
 
-      {panelOpen && <StationPanel station={current} phase={currentPhase} onClose={closePanel} />}
+      {panelOpen && (
+        <StationPanel station={current} phase={currentPhase} onClose={closePanel}>
+          {LessonView && <LessonView station={current} goTo={moveTo} />}
+        </StationPanel>
+      )}
     </div>
   );
 }
