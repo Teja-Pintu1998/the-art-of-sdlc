@@ -116,6 +116,16 @@ describe("SpaceMap", () => {
     pointer("pointerup", map, 1, 100, 100);
   });
 
+  it("shrinks the landing hero once the user explores, but not before", () => {
+    renderMap();
+    const overlay = screen.getByTestId("map-overlay");
+    expect(overlay.dataset.explored).toBeUndefined();
+    act(() => api().setView({ x: 0, y: 0, s: 1 })); // programmatic views don't count
+    expect(overlay.dataset.explored).toBeUndefined();
+    fireEvent.wheel(screen.getByTestId("space-map"), { deltaY: 100, clientX: 0, clientY: 0 });
+    expect(overlay.dataset.explored).toBe("true");
+  });
+
   it("zooms with the mouse wheel and respects the maximum zoom", () => {
     renderMap();
     const map = screen.getByTestId("space-map");

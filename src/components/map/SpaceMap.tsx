@@ -137,6 +137,15 @@ export function SpaceMap({
   const recommended = recommendedNext(availableIds, completedIds);
   const getView = useCallback(() => view.current, []);
 
+  /**
+   * The first time the user explores (pan, zoom, drag, keys, tap, mini-map), the landing hero
+   * shrinks to a compact title so the map is never hidden under it. Imperative: no re-render.
+   */
+  const markExplored = useCallback(() => {
+    const el = overlayRef.current;
+    if (el && el.dataset.explored !== "true") el.dataset.explored = "true";
+  }, []);
+
   const placeTeaser = useCallback(() => {
     const el = teaserRef.current;
     const st = hoveredRef.current;
@@ -243,6 +252,7 @@ export function SpaceMap({
     (id: number, { keepInView = true }: { keepInView?: boolean } = {}) => {
       const st = PLACED_STATIONS[id - 1];
       if (!st) return;
+      markExplored();
       currentRef.current = id;
       setCurrentId(id);
       if (reducedRef.current) {
@@ -268,7 +278,7 @@ export function SpaceMap({
       );
       applyView();
     },
-    [ax, ay, applyView, isLocked, openCard],
+    [ax, ay, applyView, isLocked, openCard, markExplored],
   );
 
   /** Snap back to the current station without changing anything else (drop in empty space). */
@@ -372,6 +382,7 @@ export function SpaceMap({
       const cur = { x: e.clientX, y: e.clientY };
       pointers.set(e.pointerId, cur);
       if (pointers.size === 1) {
+        markExplored();
         view.current = panBy(view.current, cur.x - prev.x, cur.y - prev.y);
       } else if (pointers.size === 2) {
         const d = distance();
@@ -379,6 +390,7 @@ export function SpaceMap({
           pinchDist = d; // fingers started on the same spot
         } else {
           const [a, b] = [...pointers.values()] as [Point, Point];
+          markExplored();
           view.current = zoomAt(view.current, d / pinchDist, (a.x + b.x) / 2, (a.y + b.y) / 2);
           pinchDist = d;
         }
@@ -402,6 +414,7 @@ export function SpaceMap({
       // Let the panel, card and mini-map scroll normally; only the map background zooms.
       if (e.target instanceof Element && e.target.closest("[data-no-pan]")) return;
       e.preventDefault();
+      markExplored();
       const delta = e.deltaY * (e.deltaMode === 1 ? LINE_HEIGHT_PX : 1);
       view.current = zoomAt(
         view.current,
@@ -428,7 +441,7 @@ export function SpaceMap({
       root.removeEventListener("wheel", wheel);
       window.removeEventListener("resize", applyView);
     };
-  }, [applyView, moveTo, closeCard]);
+  }, [applyView, moveTo, closeCard, markExplored]);
 
   useEffect(() => {
     window.__aosMap = { getView, setView, getCurrentStation: () => currentRef.current };
@@ -446,6 +459,7 @@ export function SpaceMap({
 
   // --- Astronaut input ---
   const onDragStart = () => {
+    markExplored();
     ax.stop();
     ay.stop();
     dragOrigin.current = { x: ax.get(), y: ay.get() };
@@ -596,13 +610,17 @@ export function SpaceMap({
       <MiniMap
         canvasRef={miniRef}
         inert={panelOpen}
-        onNavigate={(w) => setView(centerOn(w.x, w.y, view.current.s, viewportSize()))}
+        onNavigate={(w) => {
+          markExplored();
+          setView(centerOn(w.x, w.y, view.current.s, viewportSize()));
+        }}
       />
 
       <div
         ref={overlayRef}
+        data-testid="map-overlay"
         inert={panelOpen}
-        className="pointer-events-none absolute inset-x-0 top-0"
+        className="map-overlay pointer-events-none absolute inset-x-0 top-0"
       >
         {children}
       </div>

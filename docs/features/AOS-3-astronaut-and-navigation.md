@@ -39,6 +39,8 @@
 | Visual regression | 4 baselines updated (astronaut and recommended ring); stable over 3 runs |
 | Benchmark (`npm run bench:map`) | **60 fps** at 1× and 4× · **59.5 fps** at 20× (3 runs: 59.3–59.7) |
 
+- **PO finding: the map slid under the landing hero after zooming.** The hero is a fixed overlay, and only the opening view reserved space for it. Now, on the first pan, zoom, drag, keypress, tap or mini-map jump, the hero shrinks to a compact top-left title and the tagline and hint hide. A new E2E test zooms out with the wheel and checks that no visible hero text overlaps any planet or sector title. The opening view is checked the same way.
+
 ## Lessons
 
 - **Benchmark the baseline on the same day.** The AOS-2 figure (58.3 at 20×) came from a different machine state; the same build measured 54 today. Comparing against a stale number would have hidden or exaggerated the regression. Re-measure the previous build side by side (`git stash`, build, bench, `git stash pop`).

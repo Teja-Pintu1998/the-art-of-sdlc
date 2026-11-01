@@ -119,6 +119,45 @@ test.describe("space map", () => {
   });
 });
 
+test.describe("landing hero never hides the map", () => {
+  type Box = { x: number; y: number; width: number; height: number };
+  const overlaps = (a: Box, b: Box) =>
+    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+  async function heroCollisions(page: Page) {
+    const heroBoxes = await page
+      .locator(".map-hero > *")
+      .evaluateAll((els) =>
+        els
+          .filter((el) => getComputedStyle(el).display !== "none")
+          .map((el) => el.getBoundingClientRect().toJSON() as DOMRect),
+      );
+    const mapBoxes = await page
+      .locator('[data-testid="sector-title"], [data-testid="planet"]')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON() as DOMRect));
+    return heroBoxes.flatMap((h) => mapBoxes.filter((m) => overlaps(h, m)));
+  }
+
+  test("the opening view keeps the map below the hero", async ({ page }) => {
+    await openMap(page);
+    expect(await heroCollisions(page)).toEqual([]);
+  });
+
+  test("after zooming out, the hero shrinks to a compact title clear of the map", async ({
+    page,
+  }) => {
+    await openMap(page);
+    await page.mouse.move(700, 600);
+    for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 400);
+    await expect(page.getByTestId("map-overlay")).toHaveAttribute("data-explored", "true");
+    await expect(page.getByText("npm install experience")).toBeHidden();
+    const h1 = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+    expect(h1.height).toBeLessThan(40);
+    expect(h1.x).toBeLessThan(40);
+    expect(await heroCollisions(page)).toEqual([]);
+  });
+});
+
 test.describe("space map with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 

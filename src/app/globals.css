@@ -99,3 +99,38 @@ body {
     opacity: 0.9;
   }
 }
+
+/*
+ * Landing hero (AOS-2.1). Once the user starts exploring, it shrinks to a compact title in the
+ * top-left corner (the top-bar position in docs/07-ux-design.md) so the map never slides under it.
+ */
+.map-hero,
+.map-hero h1,
+.map-hero-extra {
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+}
+
+.map-overlay[data-explored="true"] .map-hero {
+  align-items: flex-start;
+  padding: 12px 16px 24px;
+  background: linear-gradient(to bottom, rgb(5 8 22 / 0.85), rgb(5 8 22 / 0));
+}
+
+.map-overlay[data-explored="true"] .map-hero h1 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.map-overlay[data-explored="true"] .map-hero-extra {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-hero,
+  .map-hero h1,
+  .map-hero-extra {
+    transition: none;
+  }
+}
