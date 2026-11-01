@@ -350,7 +350,9 @@ export function Journey({
         />
       )}
 
-      {hydrated && !onboardingSeen && routeStationId === undefined && (
+      {/* Rendered on the server too, so new visitors see it at first paint (LCP). For returning
+          visitors, CSS hides it until hydration (see onboardedScript), then it's removed. */}
+      {(!hydrated || !onboardingSeen) && routeStationId === undefined && (
         <Onboarding mapRef={mapRef} onDone={() => useProgress.getState().finishOnboarding()} />
       )}
 

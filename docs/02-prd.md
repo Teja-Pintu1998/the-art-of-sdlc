@@ -142,7 +142,7 @@ Each station is written when we reach that step in our own build, so its "How we
 
 | Area | Requirement |
 |------|-------------|
-| **Performance** | Lighthouse ≥ 90; main content loads in under 2.5s; smooth 60fps animations |
+| **Performance** | Lighthouse ≥ 90; main content loads in under 2.5s in real use, and under 3s on Lighthouse's simulated slow phone (SC-4); smooth 60fps animations |
 | **Accessibility** | WCAG 2.1 AA; fully keyboard-usable; screen-reader friendly; honours the "reduce motion" system setting |
 | **Devices** | Desktop is the primary experience; tablet and mobile fully supported |
 | **Browsers** | Latest 2 versions of Chrome, Safari, Firefox and Edge |
@@ -238,6 +238,7 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | v1.3 | 2026-10-31 | Content clarification (no scope change): station #4 also covers the backlog lifecycle and story loop, since #5 and #6 are locked in v1. | Teja / Claude |
 | v1.4 | 2026-11-01 | Open questions Q1, Q2, Q3 and Q5 resolved (see [technical design](08-tech-design.md)); release criteria: #27's "How we did it" is written right after the go/no-go meeting. | Teja / Claude |
 | v1.5 | 2026-11-01 | SC-3: hosting moves from Google Cloud Run to Vercel (free, no card). | Teja / Claude |
+| v1.6 | 2026-11-01 | SC-4: Lighthouse LCP limit in CI 2.5s → 3s (simulated slow phone); real-use target unchanged. | Teja / Claude |
 
 ## PRD Review Record (Step 4)
 
@@ -259,3 +260,4 @@ Changes after sign-off are welcome, but they go through a controlled process:
 | SC-1 | v1.1 | Add **#3 Technical feasibility / spike** to the v1 stations (requested by the PO during step 5) | Low: one more content file; real artifact available from our own spike (`docs/03-spike-findings.md`). Senior rank threshold becomes 14. | ✅ Added to v1 |
 | SC-2 | v1.2 | Clarify what happens when the astronaut lands on a planet (raised by the PO while testing the spike) | Low: one small preview-card component; no impact on scope estimate (release plan not yet set). FR-3 and the SEO deep-link behaviour clarified to match | ✅ Preview card → "Enter station" → full panel |
 | SC-3 | v1.5 | **Free tools only, no card** (PO, 2026-11-01: "this is a prototype"). Google Cloud requires a card even for its free tier | Medium. **Hosting:** Vercel Hobby (free, non-commercial), with preview URLs per branch and PR, production from `main`, and instant rollback. **Docker (#17):** still real, built in GitHub Actions, tagged with the SHA, scanned, pushed to GitHub's container registry (free for public), but it isn't the image that serves the site. **Canary (#29):** Vercel's traffic splitting is paid, so either our own cookie-based 10% split in `proxy.ts` or a preview-based canary, decided at the canary step. **Alert notifications:** descoped (AOS-10) | ✅ Approved: Vercel + GitHub Actions |
+| SC-4 | v1.6 | **Lighthouse LCP limit 2.5s → 3s** (QA, Sprint 5). Lighthouse's simulated slow phone measured LCP at 2.9s; CI had not run Lighthouse since onboarding landed in Sprint 3 | Low. Fixed the real cause first: the intro card now renders on the server, so it paints with the page (**observed LCP 0.08s**, performance 92 → 96). The simulated figure stays at about 2.76s; not preloading two fonts made no difference. The PRD's real-use target (under 2.5s) is unchanged and is tracked in New Relic (LCP p75) | ✅ PO (2026-11-01, "it's a prototype"): CI limit 3s |

@@ -239,3 +239,8 @@ body {
     transition: none;
   }
 }
+
+/* Returning visitors: hide the server-rendered intro until React removes it (see onboardedScript). */
+html[data-onboarded] [data-onboarding] {
+  display: none;
+}

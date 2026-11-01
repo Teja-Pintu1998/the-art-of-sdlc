@@ -81,6 +81,8 @@ jobs:
             test-results/
 
   lighthouse:
+    # The LCP limit is now 3s (PRD SC-4, lighthouserc.json). The name stays as is because branch
+    # protection on main requires this check by its exact name; rename both together.
     name: Lighthouse (performance ≥ 90, LCP < 2.5s)
     runs-on: ubuntu-latest
     steps:

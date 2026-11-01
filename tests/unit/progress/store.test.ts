@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   hydrateProgress,
   INITIAL_PROGRESS,
+  onboardedScript,
   PROGRESS_KEY,
   sanitizeProgress,
   useProgress,
@@ -92,5 +93,37 @@ describe("loading saved progress", () => {
       highestRank: "mid",
       onboardingSeen: true,
     });
+  });
+});
+
+describe("onboardedScript: hides the intro before React loads (LCP fix)", () => {
+  const run = () => new Function(onboardedScript())();
+  const marked = () => document.documentElement.hasAttribute("data-onboarded");
+  beforeEach(() => document.documentElement.removeAttribute("data-onboarded"));
+
+  it("marks a returning visitor who has seen the intro", () => {
+    state().finishOnboarding(); // the store writes its real persisted format
+    run();
+    expect(marked()).toBe(true);
+  });
+
+  it.each([
+    ["a new visitor", null],
+    ["intro not seen", JSON.stringify({ state: { onboardingSeen: false }, version: 1 })],
+    ["an unknown version", JSON.stringify({ state: { onboardingSeen: true }, version: 99 })],
+    ["corrupt data", "{not json"],
+  ])("shows the intro for %s", (_, stored) => {
+    if (stored !== null) localStorage.setItem(PROGRESS_KEY, stored);
+    run();
+    expect(marked()).toBe(false);
+  });
+
+  it("never throws when storage is blocked", () => {
+    const getItem = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    expect(run).not.toThrow();
+    expect(marked()).toBe(false);
+    getItem.mockRestore();
   });
 });

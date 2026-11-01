@@ -44,6 +44,11 @@
   - Knowledge-base titles and summaries are checked for "years".
   - Duplicate article names fail the build.
 
+## QA fix (Sprint 5)
+
+**Bug: slow first load (P2, LCP).** For a new visitor the intro card is the largest element, and it rendered only after hydration (it depends on `localStorage`), so Lighthouse measured LCP at 2.9s. The card now renders on the server; an inline `<head>` script (`onboardedScript`) marks `<html data-onboarded>` for returning visitors so CSS hides it before the first paint, with no flash. Observed LCP 0.08s, performance 92 → 96. The simulated LCP stays at about 2.76s; the PO accepted a 3s CI limit (PRD SC-4).
+
 ## Follow-ups
 
 - [ ] Search could also find knowledge-base articles.
+- [ ] Rename the CI check "Lighthouse (… LCP < 2.5s)" to "< 3s" together with `main`'s branch-protection required checks (it's required by exact name).

@@ -66,6 +66,7 @@ export function Onboarding({ mapRef, onDone }: Props) {
       <div
         ref={handRef}
         aria-hidden="true"
+        data-onboarding
         data-testid="onboarding-hand"
         className="pointer-events-none fixed top-0 left-0 z-10 text-4xl drop-shadow-lg"
         style={{ transform: "translate3d(-100px, -100px, 0)" }}
@@ -76,6 +77,7 @@ export function Onboarding({ mapRef, onDone }: Props) {
       <section
         aria-labelledby="onboarding-title"
         data-testid="onboarding"
+        data-onboarding
         data-no-pan
         onPointerEnter={() => setPaused(true)}
         onPointerLeave={() => setPaused(false)}

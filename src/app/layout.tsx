@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { NewRelicAgent } from "@/components/analytics/NewRelicAgent";
+import { onboardedScript } from "@/lib/progress/store";
 
 import "./globals.css";
 
@@ -28,10 +29,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // suppressHydrationWarning: the inline script may add data-onboarded before React hydrates.
     <html
       lang="en"
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: onboardedScript() }} />
+      </head>
       <body className="flex min-h-full flex-col">
         {children}
         <NewRelicAgent />
