@@ -2,6 +2,10 @@
 
 See `README.md` for the product, the 42 stations, and the 46-step build process.
 
+This project uses Next.js 16.4. Before writing Next.js code, read the relevant guide in `node_modules/next/dist/docs/` (see `AGENTS.md`).
+
+@AGENTS.md
+
 ## Before every commit (mandatory)
 
 1. Run the **`code-reviewer`** agent on the pending changes. Fix all 🔴 blockers (and 🟡 where reasonable).
