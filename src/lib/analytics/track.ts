@@ -10,6 +10,7 @@ export type AnalyticsEvent =
 
 type NewRelicAgent = {
   addPageAction: (name: string, attributes?: Record<string, string | number | boolean>) => void;
+  setCustomAttribute?: (name: string, value: string | number | boolean) => void;
 };
 
 declare global {

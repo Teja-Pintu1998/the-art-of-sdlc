@@ -16,6 +16,10 @@ export const NEW_RELIC = {
  * Agent only on the real site: set NEXT_PUBLIC_NEW_RELIC=on when building for deployment. Local
  * previews and tests don't send data, so our own clicking never pollutes the KPIs.
  */
+/** This deployment's version: the short commit SHA on Vercel, "local" elsewhere. */
+export const releaseName = () =>
+  process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local";
+
 export const newRelicEnabled = () => process.env.NEXT_PUBLIC_NEW_RELIC === "on";
 
 /** The agent's configuration script. Anonymous: no cookies, no browser storage, no replays. */

@@ -106,5 +106,15 @@ resource "newrelic_one_dashboard" "sdlc" {
         query = "SELECT count(*) FROM JavaScriptError WHERE ${local.app} FACET errorMessage, userAgentName SINCE 1 day ago LIMIT 10"
       }
     }
+
+    widget_table {
+      title  = "Canary vs stable: compare releases during a rollout"
+      row    = 3
+      column = 1
+      width  = 12
+      nrql_query {
+        query = "SELECT filter(count(*), WHERE eventType() = 'JavaScriptError') * 100 / filter(count(*), WHERE eventType() IN ('PageView', 'BrowserInteraction')) AS 'Error rate %', filter(percentile(largestContentfulPaint, 75), WHERE eventType() = 'PageViewTiming' AND timingName = 'largestContentfulPaint') AS 'LCP p75 (s)', uniqueCount(session) AS 'Sessions', filter(count(*), WHERE eventType() = 'PageView') AS 'Page views' FROM JavaScriptError, PageView, BrowserInteraction, PageViewTiming WHERE ${local.app} FACET release SINCE 1 day ago"
+      }
+    }
   }
 }

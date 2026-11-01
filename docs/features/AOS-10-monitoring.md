@@ -15,7 +15,7 @@
 ## Verified
 
 - **End to end in a real browser:** `station_completed` (station 10) and page views arrived in New Relic. The automatic Core Web Vitals showed LCP 0.07 s, INP 50 ms and CLS 0, all from local test visits.
-- **Privacy:** 0 cookies. The agent writes nothing to local or session storage; the only key is our own `aos-progress`.
+- **Privacy:** 0 cookies from New Relic. (While a canary runs, the site sets one anonymous, strictly necessary cookie: a bucket number 0–99 that keeps a visitor on one version; see AOS-1.7.) The agent writes nothing to local or session storage; the only key is our own `aos-progress`.
 
 ## Decisions and lessons
 

@@ -1,12 +1,22 @@
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { NewRelicAgent } from "@/components/analytics/NewRelicAgent";
 import { NEW_RELIC, newRelicConfigScript } from "@/lib/analytics/newrelic";
 
 vi.mock("next/script", () => ({
-  default: ({ id, src, children }: { id: string; src?: string; children?: string }) => (
-    <script data-testid={id} data-src={src}>
+  default: ({
+    id,
+    src,
+    children,
+    onLoad,
+  }: {
+    id: string;
+    src?: string;
+    children?: string;
+    onLoad?: () => void;
+  }) => (
+    <script data-testid={id} data-src={src} onClick={onLoad}>
       {children}
     </script>
   ),
@@ -31,6 +41,17 @@ describe("New Relic browser agent (AOS-10.1)", () => {
     const { getByTestId } = render(<NewRelicAgent />);
     expect(getByTestId("nr-loader")).toHaveAttribute("data-src", NEW_RELIC.loaderUrl);
     expect(getByTestId("nr-config").textContent).toBe(newRelicConfigScript());
+  });
+
+  it("tags events with this deployment's release, for canary comparisons", () => {
+    vi.stubEnv("NEXT_PUBLIC_NEW_RELIC", "on");
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA", "9b28d36abcdef");
+    const setCustomAttribute = vi.fn();
+    window.newrelic = { addPageAction: vi.fn(), setCustomAttribute };
+    const { getByTestId } = render(<NewRelicAgent />);
+    fireEvent.click(getByTestId("nr-loader"));
+    expect(setCustomAttribute).toHaveBeenCalledWith("release", "9b28d36");
+    delete window.newrelic;
   });
 
   it("is anonymous: no cookies, no session replay or traces", () => {
