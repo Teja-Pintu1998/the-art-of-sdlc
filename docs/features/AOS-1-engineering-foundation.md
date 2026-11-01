@@ -81,7 +81,7 @@
 
 ## Remaining tasks (moved to Sprint 5 by the PO, 2026-11-01)
 
-- [ ] 1.6 Docker
+- [x] 1.6 Docker (Sprint 5). A multi-stage `Dockerfile` (standalone output, `node:24-alpine`, non-root) and `.github/workflows/docker.yml`: build → smoke test (200s and real 404s, non-root) → Trivy scan (fails on fixable critical) → push `sha-<commit>` to GHCR from `main` only. First run: **216 MB**, **0 critical**. Per PRD SC-3, Vercel serves the site from source; the image proves the app is container-ready.
 - [ ] 1.7 Environments and release capability
 
 ## Follow-ups

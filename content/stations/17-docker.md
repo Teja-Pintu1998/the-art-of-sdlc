@@ -94,9 +94,9 @@ Keep them out of the image. Inject configuration through environment variables a
 
 ## How we did it in this project
 
-Containerising this app is planned for the release sprint (task AOS-1.6, moved there by a PO decision to reach visible features sooner). Until then, our Definition of Done uses a local production build check instead. The plan:
+Our [Dockerfile](https://github.com/Teja-Pintu1998/the-art-of-sdlc/blob/main/Dockerfile) and [image workflow](https://github.com/Teja-Pintu1998/the-art-of-sdlc/blob/main/.github/workflows/docker.yml):
 
-- **A multi-stage Dockerfile:** install, build Next.js in standalone mode, and copy only the output onto a slim Node.js image running as a non-root user.
-- **Tagged with the commit SHA,** pushed to Google Artifact Registry, scanned, then promoted unchanged to the Cloud Run environments (AOS-1.7).
-
-This section will be updated with the real numbers (image size, scan results) once AOS-1.6 is done.
+- **Three stages:** install exact versions with `npm ci`; build Next.js in **standalone** mode; copy only the output onto `node:24-alpine`, running as a **non-root** user.
+- **The result is 216 MB,** of which our app is 49 MB. The rest is Node.js and Alpine Linux.
+- **GitHub Actions** builds it on every push and tags it `sha-<commit>`. It then starts a container and checks that pages return 200 and unknown addresses return 404, and **Trivy** scans it: the first scan found **0 critical vulnerabilities**. Only builds from `main` are pushed to GitHub's container registry.
+- **An honest trade-off:** to stay free, the site is hosted on Vercel, which builds from source rather than running this image. So production and the tested image are two builds of the same commit, not one image promoted everywhere. A company running containers would deploy this exact image instead.
