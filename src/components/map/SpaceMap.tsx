@@ -160,6 +160,7 @@ export function SpaceMap({
   const astroRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const planetRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lockBadgeRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const sectorRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const view = useRef<View>({ x: 0, y: 0, s: 1 });
@@ -260,12 +261,13 @@ export function SpaceMap({
       const scale = planetScale(st.r, v.s);
       el.style.transform = `translate3d(${p.x - st.r}px, ${p.y - st.r}px, 0) scale(${scale})`;
       if (el.dataset.labels !== labels) el.dataset.labels = labels;
-      // Zoomed out, locked planets keep a lock badge at a fixed on-screen size (colour is never the
-      // only signal). Written only when it changes, so panning stays style-recalc free.
-      if (el.dataset.locked === "true") {
-        const inv = labels === "off" ? (1 / scale).toFixed(3) : "1";
-        if (el.style.getPropertyValue("--planet-inv") !== inv)
-          el.style.setProperty("--planet-inv", inv);
+      // Zoomed out, locked planets keep a lock badge (colour is never the only signal). It's a
+      // separate, never-scaled element on top of the planet, so it's always sharp: inside the
+      // planet's will-change layer it would be rastered at whatever scale came first.
+      const badge = lockBadgeRefs.current[i];
+      if (badge) {
+        badge.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`;
+        if (badge.hidden !== (labels === "on")) badge.hidden = labels === "on";
       }
     });
 
@@ -740,14 +742,27 @@ export function SpaceMap({
                 >
                   <span className="planet-label text-white">{locked ? `🔒${st.id}` : st.id}</span>
                 </span>
-                {locked && (
-                  <span className="planet-lock-badge" data-testid="lock-badge">
-                    🔒
-                  </span>
-                )}
               </div>
             );
           })}
+
+          {/* Lock badges for zoomed-out views, positioned by applyView. Taps pass through. */}
+          {PLACED_STATIONS.map((st, i) =>
+            isLocked(st.id) ? (
+              <span
+                key={st.id}
+                ref={(el) => {
+                  lockBadgeRefs.current[i] = el;
+                }}
+                hidden
+                data-testid="lock-badge"
+                data-badge-for={st.id}
+                className="planet-lock-badge"
+              >
+                🔒
+              </span>
+            ) : null,
+          )}
 
           {teaserVisible && (
             <div

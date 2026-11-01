@@ -52,5 +52,5 @@
 - [ ] 🟢 Two-finger pinch zooms but doesn't pan with the fingers' midpoint.
 - [ ] 🟢 Check planet number sharpness at 2.5× on a real high-DPR device (`will-change: transform`).
 - **QA-fix review (keyboard zoom, lock badge): REQUEST CHANGES, fixed.** 🔴 The new planet-body layer covered the ✓ on completed planets → `z-index: 1` on the badge, plus an E2E check. 🟡 Map keys no longer act behind an open Search/Knowledge base dialog; the lock badge is counter-scaled with a transform (no layout per zoom frame). 🟢 `_` dropped as a zoom key (AZERTY 8); storage constants moved to `lib/progress/storage.ts` (no zustand in the root layout; E2E imports them).
-- [ ] 🟢 A planet that becomes locked while zoomed out shows its badge at `inv=1` until the next pan or zoom (rare: locks only change on deploy).
+- **Flaky screenshot found and fixed:** a badge inside the planet's `will-change: transform` layer was rastered sharp or blurry depending on timing (zoomed-out visual test failed about half the time). The badge is now a separate, never-scaled 16px element that the map positions over each locked planet: always sharp, no layout when zooming. Checked stable over 8 consecutive visual runs.
 - [ ] 🟢 Unit test for "fit all" with the hero inset (`y >= topInset`).

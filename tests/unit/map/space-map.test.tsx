@@ -95,15 +95,20 @@ describe("SpaceMap", () => {
     expect(planet(1).dataset.labels).toBe("on");
   });
 
-  it("keeps a fixed-size lock badge on locked planets when zoomed far out", () => {
+  it("shows a lock badge over locked planets only when zoomed far out", () => {
     renderMap();
-    expect(planet(1).querySelector("[data-testid=lock-badge]")).toBeNull(); // available
-    act(() => api().setView({ x: 0, y: 0, s: 0.2 }));
-    const inv = Number(planet(5).style.getPropertyValue("--planet-inv"));
-    expect(inv).toBeGreaterThan(1); // counter-scaled: the planet is drawn smaller than its size
+    const badge = (id: number) =>
+      document.querySelector<HTMLElement>(`[data-testid=lock-badge][data-badge-for="${id}"]`);
+    expect(badge(1)).toBeNull(); // available stations never get one
     act(() => api().setView({ x: 0, y: 0, s: 1 }));
-    expect(planet(5).style.getPropertyValue("--planet-inv")).toBe("1");
-    expect(planet(5).querySelector("[data-testid=lock-badge]")).not.toBeNull();
+    expect(badge(5)!.hidden).toBe(true); // zoomed in: the label already shows 🔒5
+    act(() => api().setView({ x: 10, y: 20, s: 0.2 }));
+    expect(badge(5)!.hidden).toBe(false);
+    // Centred on the planet, never scaled (so it stays sharp at any zoom).
+    const st = PLACED_STATIONS[4]!;
+    expect(badge(5)!.style.transform).toBe(
+      `translate3d(${st.x * 0.2 + 10}px, ${st.y * 0.2 + 20}px, 0) translate(-50%, -50%)`,
+    );
   });
 
   it("pans when the background is dragged", () => {
