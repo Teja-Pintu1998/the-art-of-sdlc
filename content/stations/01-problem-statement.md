@@ -26,19 +26,19 @@ The most expensive mistake in software isn't a bug. It's building something nobo
 
 Writing the problem down first:
 
-- **Replaces opinions with evidence.** Anyone can disagree with an idea; it's harder to argue with data.
-- **Gives the whole team one target.** When design, engineering and QA know the *why*, they can make trade-offs without escalating every decision.
-- **Defines success up front,** so after launch you can measure whether it worked instead of explaining it away.
-- **Lets leadership compare options.** Every team competes for the same engineers; the business case shows why this deserves them.
+- **Replaces opinions with evidence.**
+- **Gives the whole team one target,** so design, engineering and QA can make trade-offs on their own.
+- **Defines success up front,** so after launch you can measure whether it worked.
+- **Lets leadership compare options,** because every team competes for the same engineers.
 
 ## How it works in big companies
 
 - **Who writes it:** usually the **Product Manager**, with input from data analysts, user researchers, design and an engineering lead.
-- **Inputs:** product analytics, customer interviews, support tickets, app-store reviews, sales feedback and competitor research.
-- **Format:** a short document, often one page. Amazon is known for its **PR/FAQ** ("working backwards"): a press release written as if the feature had already launched, plus the hard questions it must answer. If the press release isn't exciting for customers, the idea is reworked or dropped.
+- **Inputs:** product analytics, customer interviews, support tickets, app reviews and competitor research.
+- **Format:** a short document, often one page. Amazon is known for its **PR/FAQ** ("working backwards"): a press release written as if the feature had already launched. If it doesn't excite customers, the idea is reworked or dropped.
 - **Success metrics:** one **primary metric** that should move, with a target and a date, plus **guardrail metrics** that must not get worse.
-- **Review:** it is presented at a product or planning review. The outcome is **approve** (it goes on the roadmap), **park** or **kill**.
-- **Tools:** Confluence, Notion or Google Docs for the document; Amplitude or Looker for data; Jira Product Discovery or Productboard to track ideas.
+- **Review:** at a product or planning review, the outcome is **approve** (onto the roadmap), **park** or **kill**.
+- **Tools:** Confluence, Notion or Google Docs; Amplitude or Looker for data; Jira Product Discovery or Productboard for ideas.
 
 ## Real-world example
 
@@ -61,7 +61,7 @@ Notice what it does **not** say: "build a schedule button". Scheduling is one po
 | | |
 |---|---|
 | **Value** | Win back 25% of lost orders: about 1,000 orders a week × €3 margin ≈ **€156,000 a year**. Scheduled orders also spread out the lunch peak for restaurants and couriers |
-| **Rough cost** | Two teams for about one quarter (engineering gives a rough size, refined later) |
+| **Rough cost** | One team for about six weeks, roughly €70,000, so it pays back within six months (engineering gives the rough size) |
 | **Primary metric** | +1,000 completed orders a week within 8 weeks of launch |
 | **Guardrails** | On-time delivery for normal orders doesn't drop; support tickets don't rise |
 | **Main risks** | Restaurants may not be ready at the scheduled time; not enough couriers at peak |
@@ -71,28 +71,28 @@ Leadership approves it. QuickBite's "Schedule your order" journey begins.
 ## Common problems and how seniors handle them
 
 - **A solution disguised as a problem.** "Users need a schedule button." Seniors keep asking *why* until they reach the user's pain (the "5 Whys"). That keeps cheaper options on the table.
-- **Opinions instead of evidence.** "The CEO wants it." Seniors ask for data, or propose a cheap test first: a survey, five user interviews, or a **fake-door test** (a button that only measures how many people click it).
+- **Opinions instead of evidence.** "The CEO wants it." Seniors ask for data or a cheap test first, such as user interviews or a **fake-door test** (a button that only counts clicks).
 - **Vague success.** "Improve engagement." Seniors insist on one measurable metric with a target and a date, plus guardrails.
-- **Solving everything at once.** Lunch, dinner and group orders in one go. Seniors start with the segment where the pain and the value are biggest.
-- **Engineering joins too late.** Engineers know hidden costs and cheaper paths. Seniors get involved early and give a rough size, so the cost in the business case is realistic.
+- **Solving everything at once.** Seniors start with the segment where the pain and value are biggest.
+- **Engineering joins too late.** Seniors get involved early and give a rough size, so the cost in the business case is realistic.
 
 ## Say this in your interview
 
-"Before building anything, I make sure we agree on the **problem**, not the solution. A good problem statement says who is affected, what the pain is, the evidence that it's real, and what it costs today. The business case adds the expected value, a rough cost, and how we'll measure success: one primary metric with a target and a date, plus guardrail metrics that must not get worse.
+"Before building anything, I make sure we agree on the **problem**, not the solution. A good problem statement says who is affected, what the pain is, the evidence that it's real, and what it costs today. The business case then adds the expected value, a rough cost, the main risks, and how we'll measure success: one primary metric with a target and a date, plus guardrail metrics that must not get worse.
 
-For example, a food-delivery app losing thousands of lunch orders a week because people can't order ahead should frame *that* as the problem, not 'build a scheduling button', size the lost revenue, and agree the target before writing any code.
+For example, a food-delivery app losing thousands of lunch orders a week because people can't order ahead should frame *that* as the problem, not 'build a scheduling button'. Then it sizes the lost revenue and agrees the target before anyone writes code. That keeps cheaper options, like a simple reminder, on the table.
 
-As an engineer, I like to join this stage early. I can challenge assumptions, suggest cheaper options and give a rough size, because the most expensive bug is building the wrong thing."
+As an engineer, I like to join this stage early. I can challenge assumptions, suggest simpler options and give a rough size, so the business case is realistic. The most expensive mistake isn't a bug; it's building the wrong thing."
 
 ## Interview questions you'll get
 
 ### What makes a good problem statement?
 
-It is specific about who is affected, describes the pain without prescribing a solution, is backed by evidence, and puts a number on the impact. If you can't measure the problem, you can't tell whether you solved it.
+It names who is affected, describes the pain without prescribing a solution, is backed by evidence, and puts a number on the impact. If you can't measure the problem, you can't tell whether you solved it.
 
 ### What's the difference between a problem statement and a business case?
 
-The problem statement explains the pain and who has it. The business case argues whether solving it is worth the investment: expected value, rough cost, risks and success metrics. The first answers "what's wrong?"; the second answers "should we spend money on it now?"
+The problem statement explains the pain and who has it. The business case argues whether solving it is worth the investment: value, cost, risks and success metrics. One answers "what's wrong?"; the other, "should we spend money on it now?"
 
 ### How do you define success for a feature?
 
@@ -100,11 +100,11 @@ One primary metric tied to the problem, with a target and a time frame, plus gua
 
 ### A stakeholder insists on a specific feature. What do you do?
 
-I ask what problem it solves and what evidence we have, out of curiosity rather than as a challenge. Then I treat their idea as one option, compare it with cheaper ones, and suggest a small test if the evidence is thin. That keeps the discussion about outcomes, not opinions.
+I ask what problem it solves and what evidence we have, out of curiosity rather than as a challenge. Then I treat their idea as one option, compare it with cheaper ones, and suggest a small test if the evidence is thin.
 
 ### Why should engineers care about this stage?
 
-Engineering time is usually the biggest cost. Engineers spot technical risks and cheaper alternatives early, make the cost estimate realistic, and build better when they understand the *why*.
+Engineering time is usually the biggest cost. Engineers spot risks and cheaper options early, and build better when they understand the *why*.
 
 ## How we did it in this project
 
@@ -112,5 +112,4 @@ This project started exactly here. Before any code, we wrote our [problem statem
 
 - **Problem:** tutorials teach languages and frameworks, but not how software is actually delivered inside a company, and interviewers for mid-level and senior roles test exactly that.
 - **Who:** graduates, career switchers, developers at small companies, and engineers preparing for interviews.
-- **Why existing options fall short:** videos and blogs are scattered, courses teach tools rather than process, and interview platforms focus on algorithms.
 - **Success metrics:** at least 60% of visitors complete Phase 1, 20% reach Senior, and 70% rate it "helpful for interviews". The 👍/👎 at the end of this lesson measures that last one.

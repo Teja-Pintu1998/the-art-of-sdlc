@@ -2,7 +2,7 @@
 
 > **As a** learner, **I want** my progress tracked and rewarded with ranks, **so that** I feel myself becoming a senior engineer.
 
-**Status:** built on `develop` (Sprint 2). Code review: running in the background; findings will be added below.
+**Status:** built on `develop` (Sprint 2). Code review: REQUEST CHANGES, 2 blockers, both fixed in Sprint 3 (see "Review fixes").
 
 ## What was built
 
@@ -29,7 +29,14 @@
 | Visual regression | 4 baselines updated (the new progress box); stable over 2 runs |
 | Benchmark | 60 fps at 1× and 4×, 58.5 fps at 20× (59.5 before; within run-to-run noise) |
 
+## Review fixes
+
+- 🔴 **Focus was lost after a confirmed reset:** the Reset link disappears at 0 completed, so focus fell to the page. Focus now moves to the progress box (`role="region"`, `tabIndex={-1}`); there's a test.
+- **Saved progress shows on the first frame,** with no flash of "0/14": `Journey` re-renders synchronously after loading it, before paint.
+- **A shared station link counts as a visit,** so closing it and reloading stays on that station.
+- **Blocked storage** (private mode) is tested: the app works, it just doesn't save.
+- **`phase1_completed`** is sent each time Phase 1 becomes complete (an undo and redo repeats it). Analytics counts unique sessions, which is documented in the code.
+
 ## Follow-ups
 
-- [ ] Code-review findings (pending).
 - [ ] Share achievement on LinkedIn (FR-16, post-v1). The journey summary is ready for it.

@@ -2,7 +2,7 @@
 
 > **As a** learner, **I want** each station to open into a rich, well-structured lesson, **so that** I can learn the topic in depth and use it in interviews.
 
-**Status:** built on `develop` (Sprint 2). Code review: running in the background; findings will be added below.
+**Status:** built on `develop` (Sprint 2). Code review: REQUEST CHANGES, 2 blockers, both fixed in Sprint 3 (see "Review fixes").
 
 ## What was built
 
@@ -31,7 +31,18 @@
 | E2E (Chromium + WebKit) | Title and description per station; lesson present in the server HTML; unknown station returns 404; address bar follows Next and Close; feedback; 375px has no sideways scroll and text ≥ 16px; axe finds no serious issues with the lesson open |
 | Build | No warnings. The content folder is excluded from server file tracing (`turbopackIgnore`) because pages are pre-built |
 
+## Review fixes
+
+- 🔴 **A malformed address such as `/station/%E0` crashed the proxy** (500) instead of returning a 404. Decoding errors now count as "unknown station"; there's a unit test.
+- **Lesson files can't run code:** gray-matter would `eval` `---js` frontmatter, so only YAML is accepted now, with a test.
+- **Station 1's business case now adds up:** about €70,000 of cost (one team, six weeks) against €156,000 a year of value. Before, it was two teams for a quarter, which cost more than the value.
+- **Escape with a dialog over the lesson** closes that dialog, not the lesson under it.
+- **The page title follows the open lesson,** as the address bar does.
+- **AOS-7 content rules are checked on every build:** 3–5 minutes of reading (238 words per minute), a 150–200 word interview answer, at least 5 interview questions, and no "years of experience". Station 1 was tightened to fit (about 4.9 minutes, a 165-word answer).
+
 ## Follow-ups
 
+- [ ] Every page sends all lessons' HTML to the browser. That's fine for 5 lessons, but before AOS-8 (14 lessons), send only the open station's lesson and load the others on demand (review 🟡).
+- [ ] The `## ` section split would also match a heading inside a code block. Switch to an AST-based split if lessons ever include Markdown code samples.
+
 - [ ] Write lessons 2–14 (AOS-7 to AOS-9), continuing the QuickBite story.
-- [ ] Code-review findings (pending).
