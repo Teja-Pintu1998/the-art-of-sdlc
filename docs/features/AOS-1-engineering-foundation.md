@@ -61,10 +61,35 @@
 
 **How it was verified:** `npm run lint` passes; `npm run build` pre-renders `/` as static; `next start` serves the page with the title "The Art of SDLC".
 
-## Remaining tasks
+## 1.3–1.5 Code quality, testing and CI ✅
 
-- [ ] 1.3 Code quality tooling
-- [ ] 1.4 Testing framework
-- [ ] 1.5 CI pipeline (also completes 1.1's "passing CI" criterion)
+| Task | What was set up |
+|------|-----------------|
+| **1.3 Code quality** | ESLint (`--max-warnings=0`), Prettier with Tailwind class sorting (`tailwindStylesheet` → `globals.css`), `eslint-config-prettier`, Husky pre-commit → lint-staged on staged files; `npm run typecheck` (`next typegen && tsc --noEmit`) |
+| **1.4 Testing** | Vitest + React Testing Library (`tests/unit`, coverage gate ≥ 80% on lines, branches, functions, statements); Playwright E2E on Chromium, WebKit and Firefox (`tests/e2e`) with **axe** accessibility checks; visual regression screenshots per platform (`tests/visual/__screenshots__/{platform}`); coverage baseline in `tests/coverage-baseline.json` |
+| **1.5 CI** | `.github/workflows/ci.yml` on every PR and push to `main`: **Quality** (format, lint, types, unit tests + coverage, baseline check, build) · **E2E** ×3 browsers · **Visual** · **Lighthouse** (performance ≥ 90, accessibility ≥ 90, LCP < 2.5s) · **Security** (`npm audit --omit=dev --audit-level=high`, dependency review on PRs). Plus Dependabot (`.github/dependabot.yml`), Dependabot alerts, automatic security fixes and CodeQL code scanning |
+
+**Decisions**
+- **Auto-fix instead of reject (AC refined):** the hook rejects *unfixable* lint errors and auto-fixes formatting; CI's `format:check` rejects anything unformatted that bypassed the hook. A test commit with `export const bad: any = 1` was rejected.
+- **`prepare: husky || true`:** installs without devDependencies (the Docker production stage in 1.6) don't fail.
+- **Markdown excluded from Prettier;** the type check runs in CI, not the hook (too slow per commit).
+- **Firefox is verified in CI only.** Playwright's Firefox fails to launch on the dev Mac ("Could not find profile folder") but passes on the Linux CI runner; locally `npm run test:e2e:local` runs Chromium and WebKit.
+- **Visual baselines are per platform:** macOS locally, Linux in CI. New Linux baselines come from the CI `visual-results` artifact and are committed after review.
+- **Zoom-level screenshots** (spike lesson L4) are added with the map in AOS-2.3; this story sets up the infrastructure with a home-page screenshot.
+
+**Scripts:** `npm test` · `npm run test:e2e` (all 3 browsers) · `npm run test:e2e:local` · `npm run test:visual` · `npm run test:all` · `npm run coverage:baseline` · `npm run format` · `npm run typecheck`
+
+## Remaining tasks (moved to Sprint 5 by the PO, 2026-11-01)
+
 - [ ] 1.6 Docker
 - [ ] 1.7 Environments and release capability
+
+## Follow-ups
+
+*(Non-blocking review suggestions, fixed in batches.)*
+
+- [ ] Branch coverage is trivially 100% (no branches yet); the drop check becomes meaningful once map logic lands in AOS-2.
+- [ ] Pin GitHub Actions to commit SHAs (Dependabot `github-actions` updates partly cover this).
+- [ ] Lighthouse reports upload to temporary public storage; fine for a public repo, revisit if the repo goes private.
+- [ ] CI builds the app 5 times per run (quality, 3× E2E, visual, Lighthouse); build once and share it as an artifact when CI time matters.
+- [ ] README "how to run tests" section should point to `test:e2e:local` on macOS (write with the README dev-setup section).

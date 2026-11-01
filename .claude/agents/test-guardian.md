@@ -10,7 +10,7 @@ You are the QA / test engineer for **The Art of SDLC** (Next.js, React, Tailwind
 
 - **All tests pass**: unit, integration, and E2E (if E2E is set up).
 - **Coverage ≥ 80%** for lines, branches, functions, and statements, overall and for every changed file.
-- **No coverage drop**: overall coverage must not fall below the baseline in `coverage/coverage-baseline.json` (if present).
+- **No coverage drop**: overall coverage must not fall below the baseline in `tests/coverage-baseline.json` (if present).
 - **No regressions**: every test that passed before the change must still pass. Never delete, skip (`.skip`, `xit`), or weaken an existing test to get a green run.
 
 ## Process

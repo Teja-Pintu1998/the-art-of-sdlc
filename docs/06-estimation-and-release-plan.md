@@ -32,16 +32,17 @@ Story points measure relative size (effort, complexity and uncertainty), not hou
 
 | Sprint | Goal | Stories | Points |
 |--------|------|---------|--------|
-| Sprint 0 | Engineering foundation | AOS-1 | 13 |
+| Sprint 0 | Engineering foundation (tasks 1.1–1.5) | AOS-1 | 13 |
 | Sprint 1 | A map you can explore | AOS-2, AOS-3 | 16 (deliberate stretch: the spike de-risked both) |
 | Sprint 2 | Stations you can open, and progress | AOS-4, AOS-5 | 13 |
 | Sprint 3 | Onboarding and first content | AOS-6, AOS-7 | 13 |
 | Sprint 4 | Engineering content and monitoring | AOS-8, AOS-10 | 13 |
-| Sprint 5 | Release | QA, UAT, CR, go/no-go, canary launch (build steps 22–37); AOS-9 written along the way | 5 |
+| Sprint 5 | Release | AOS-1.6 Docker and 1.7 Cloud Run environments, then QA, UAT, CR, go/no-go, canary launch (build steps 22–37); AOS-9 written along the way | 5 |
 
 **Target v1 launch:** mid-December 2026, based on the **1-week sprints** agreed at kickoff (6 sprints from 2026-11-01). If a sprint slips, the date is reviewed at the sprint review.
 
 **Notes**
+- **Re-plan (PO decision, 2026-11-01):** to reach visible features sooner, AOS-1.6 (Docker) and 1.7 (Cloud Run environments) move from Sprint 0 to the start of Sprint 5. AOS-1 stays open until then. Until 1.7, "deployed to the preview environment" in the Definition of Done is replaced by a local production build check.
 - AOS-7 tasks 7.1–7.3 (Problem statement, PRD, Spike) can be written as soon as the content system (AOS-4) exists, since we've already lived those steps.
 - **Analytics dependency:** tasks 4.4 (feedback) and 5.3 (ranks) call a small analytics helper (`src/lib/analytics`) that is created in Sprint 2 with the agreed event names and does nothing yet. AOS-10.1 connects it to New Relic in Sprint 4. This keeps Sprint 2 "Ready" without pulling AOS-10 forward.
 - **Release-content order (Sprint 5):** CR approved → write station #26 (CR) → go/no-go meeting → write #27's "How we did it" → start the canary. #27's "How we did it" is therefore exempt from the go/no-go content check, like #29 and #34 (PRD v1.4).

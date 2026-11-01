@@ -54,7 +54,7 @@ Story points are added in step 8; the Definition of Ready / Done is set in step 
 |---|------|---------------------|
 | 1.1 | Repo setup | `main` is protected; merging requires a PR with passing CI; a PR template is used |
 | 1.2 | Project scaffolding | Next.js + TypeScript + Tailwind + Framer Motion; the app runs locally; folder structure matches the technical design |
-| 1.3 | Code quality tooling | ESLint, Prettier, Husky + lint-staged; a commit with lint or format errors is rejected |
+| 1.3 | Code quality tooling | ESLint, Prettier, Husky + lint-staged; a commit with unfixable lint errors is rejected; formatting is auto-fixed in the hook and rejected in CI if unformatted |
 | 1.4 | Testing framework | Unit, E2E and **visual regression** tests set up (spike lesson L4); sample tests pass; coverage report with a ≥ 80% gate; screenshot test at 3 zoom levels; E2E tests run on Chromium, WebKit (Safari) and Firefox (PRD browser support) |
 | 1.5 | CI pipeline | GitHub Actions: install → lint → type check → test → build, plus **Lighthouse CI** (performance ≥ 90, main content < 2.5s), **automated accessibility checks** (axe, zero serious violations) and **dependency scanning**; any failure blocks the merge |
 | 1.6 | Docker | The app is containerised; the image builds in CI; tag = version + commit SHA |

@@ -9,8 +9,7 @@ export default function Home() {
         <span aria-hidden="true">$ </span>npm install experience
       </p>
       <p className="max-w-md text-muted">
-        A space-themed journey through the full software development life cycle.
-        Launching soon.
+        A space-themed journey through the full software development life cycle. Launching soon.
       </p>
     </main>
   );
