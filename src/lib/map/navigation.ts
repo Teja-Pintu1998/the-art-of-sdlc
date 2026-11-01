@@ -37,6 +37,20 @@ export function arrowDelta(key: string): number {
   return 0;
 }
 
+/** One keyboard zoom step (about the same as a few wheel notches). */
+export const KEY_ZOOM_STEP = 1.25;
+
+/**
+ * Keyboard zoom (WCAG 2.1.1): "+" (or "=", same key without Shift) zooms in, "-" zooms out, "0"
+ * fits the whole journey. Returns the zoom factor, "fit", or null for any other key.
+ */
+export function zoomKey(key: string): number | "fit" | null {
+  if (key === "+" || key === "=") return KEY_ZOOM_STEP;
+  if (key === "-" || key === "_") return 1 / KEY_ZOOM_STEP;
+  if (key === "0") return "fit";
+  return null;
+}
+
 /** The next uncompleted available station, in path order (FR-5 "recommended next"). */
 export function recommendedNext(
   availableIds: readonly number[],

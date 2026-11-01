@@ -8,6 +8,8 @@ import {
   recommendedNext,
   SNAP_RADIUS,
   stepStation,
+  zoomKey,
+  KEY_ZOOM_STEP,
 } from "@/lib/map/navigation";
 
 const stations = [
@@ -103,5 +105,16 @@ describe("isTap", () => {
   it("treats tiny movements as a tap and larger ones as a drag", () => {
     expect(isTap({ x: 0, y: 0 }, { x: 3, y: 4 })).toBe(true);
     expect(isTap({ x: 0, y: 0 }, { x: 6, y: 0 })).toBe(false);
+  });
+});
+
+describe("zoomKey (keyboard zoom, WCAG 2.1.1)", () => {
+  it("maps + / = to zoom in, - / _ to zoom out, 0 to fit, anything else to null", () => {
+    expect(zoomKey("+")).toBe(KEY_ZOOM_STEP);
+    expect(zoomKey("=")).toBe(KEY_ZOOM_STEP);
+    expect(zoomKey("-")).toBe(1 / KEY_ZOOM_STEP);
+    expect(zoomKey("_")).toBe(1 / KEY_ZOOM_STEP);
+    expect(zoomKey("0")).toBe("fit");
+    for (const key of ["1", "a", "Enter", "ArrowUp"]) expect(zoomKey(key)).toBeNull();
   });
 });

@@ -53,6 +53,26 @@ body {
   display: none;
 }
 
+/* Zoomed out, the numbers (and their 🔒) hide; locked planets keep this badge, counter-scaled to
+   16px on screen (--planet-inv is set by the map), so dimming is never the only signal. */
+.planet-lock-badge {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(16px * var(--planet-inv, 1));
+  height: calc(16px * var(--planet-inv, 1));
+  place-items: center;
+  border-radius: 9999px;
+  border: calc(1.5px * var(--planet-inv, 1)) solid #cbd5e1;
+  background: #0f172a;
+  font-size: calc(9px * var(--planet-inv, 1));
+  line-height: 1;
+}
+.planet[data-labels="off"] .planet-lock-badge {
+  display: grid;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .map-path-line {
     animation: none;

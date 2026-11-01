@@ -64,8 +64,10 @@ describe("SpaceMap", () => {
     expect(planet(1)).toHaveAttribute("data-locked", "false");
     expect(planet(5)).toHaveAttribute("data-locked", "true");
     expect(planet(5)).toHaveTextContent("🔒5");
-    expect(planet(5).style.opacity).toBe("0.4");
-    expect(planet(1).style.opacity).toBe("1");
+    const body = (id: number) =>
+      planet(id).querySelector<HTMLElement>("[data-testid=planet-body]")!;
+    expect(body(5).style.opacity).toBe("0.4");
+    expect(body(1).style.opacity).toBe("1");
   });
 
   it("opens on the current station's phase and reveals the map", () => {
@@ -91,6 +93,17 @@ describe("SpaceMap", () => {
     expect(planet(1).dataset.labels).toBe("off");
     act(() => api().setView({ x: 0, y: 0, s: 1 }));
     expect(planet(1).dataset.labels).toBe("on");
+  });
+
+  it("keeps a fixed-size lock badge on locked planets when zoomed far out", () => {
+    renderMap();
+    expect(planet(1).querySelector("[data-testid=lock-badge]")).toBeNull(); // available
+    act(() => api().setView({ x: 0, y: 0, s: 0.2 }));
+    const inv = Number(planet(5).style.getPropertyValue("--planet-inv"));
+    expect(inv).toBeGreaterThan(1); // counter-scaled: the planet is drawn smaller than its size
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    expect(planet(5).style.getPropertyValue("--planet-inv")).toBe("1");
+    expect(planet(5).querySelector("[data-testid=lock-badge]")).not.toBeNull();
   });
 
   it("pans when the background is dragged", () => {
@@ -126,6 +139,38 @@ describe("SpaceMap", () => {
     );
     fireEvent(window, new Event("resize"));
     expect(clip.style.clipPath).toBe("inset(150px 0 0 0)");
+  });
+
+  it("zooms with + and -, and fits the whole journey with 0 (keyboard, WCAG 2.1.1)", () => {
+    renderMap();
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    fireEvent.keyDown(document, { key: "+" });
+    expect(api().getView().s).toBeCloseTo(1.25);
+    fireEvent.keyDown(document, { key: "-" });
+    fireEvent.keyDown(document, { key: "-" });
+    expect(api().getView().s).toBeCloseTo(0.8);
+    fireEvent.keyDown(document, { key: "0" });
+    const fit = api().getView();
+    expect(fit.s).toBeLessThan(0.8);
+    // Every planet is now on screen, below the hero.
+    for (const s of PLACED_STATIONS) {
+      expect(s.x * fit.s + fit.x).toBeGreaterThanOrEqual(0);
+      expect(s.x * fit.s + fit.x).toBeLessThanOrEqual(window.innerWidth);
+      expect(s.y * fit.s + fit.y).toBeLessThanOrEqual(window.innerHeight);
+    }
+  });
+
+  it("leaves browser zoom (Ctrl/Cmd +) and typing in text fields alone", () => {
+    renderMap();
+    act(() => api().setView({ x: 0, y: 0, s: 1 }));
+    fireEvent.keyDown(document, { key: "+", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "=", metaKey: true });
+    const input = document.createElement("input");
+    document.body.append(input);
+    input.focus();
+    fireEvent.keyDown(input, { key: "0" });
+    expect(api().getView().s).toBe(1);
+    input.remove();
   });
 
   it("zooms with the mouse wheel and respects the maximum zoom", () => {

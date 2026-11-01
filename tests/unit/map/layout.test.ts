@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  allBounds,
   centerOn,
   clampScale,
   fitBounds,
@@ -158,5 +159,20 @@ describe("semantic zoom", () => {
     ]);
     expect(d).toBe("M10.0,20.0 L60.0,45.0");
     expect(pathD({ x: 0, y: 0, s: 1 }).match(/[ML]/g)).toHaveLength(42);
+  });
+});
+
+describe("fit all (keyboard 0)", () => {
+  it("contains every planet, and fits them all on a desktop screen by zooming out", () => {
+    const b = allBounds();
+    for (const s of PLACED_STATIONS) {
+      expect(s.x - s.r).toBeGreaterThanOrEqual(b.x);
+      expect(s.x + s.r).toBeLessThanOrEqual(b.x + b.w);
+      expect(s.y - s.r).toBeGreaterThanOrEqual(b.y);
+      expect(s.y + s.r).toBeLessThanOrEqual(b.y + b.h);
+    }
+    const v = fitBounds(b, viewport);
+    expect(v.s).toBeGreaterThanOrEqual(MIN_SCALE);
+    expect(v.s).toBeLessThan(1); // the whole journey is wider than one screen
   });
 });

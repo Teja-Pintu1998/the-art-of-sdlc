@@ -84,16 +84,24 @@ export function centerOn(wx: number, wy: number, s: number, viewport: Size): Vie
   return { s: scale, x: viewport.w / 2 - wx * scale, y: viewport.h / 2 - wy * scale };
 }
 
+/** Bounding box (world units) of the given planets, including their radius. */
+function boundsOf(stations: readonly PlacedStation[]): Rect {
+  const minX = Math.min(...stations.map((s) => s.x - s.r));
+  const maxX = Math.max(...stations.map((s) => s.x + s.r));
+  const minY = Math.min(...stations.map((s) => s.y - s.r));
+  const maxY = Math.max(...stations.map((s) => s.y + s.r));
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
 /** Bounding box (world units) of all planets in a phase, including their radius. */
 export function phaseBounds(phaseId: number): Rect {
   const inPhase = PLACED_STATIONS.filter((s) => s.phase === phaseId);
   if (inPhase.length === 0) throw new Error(`Unknown phase ${phaseId}`);
-  const minX = Math.min(...inPhase.map((s) => s.x - s.r));
-  const maxX = Math.max(...inPhase.map((s) => s.x + s.r));
-  const minY = Math.min(...inPhase.map((s) => s.y - s.r));
-  const maxY = Math.max(...inPhase.map((s) => s.y + s.r));
-  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  return boundsOf(inPhase);
 }
+
+/** Bounding box of the whole journey (all 42 planets): the "fit all" view. */
+export const allBounds = (): Rect => boundsOf(PLACED_STATIONS);
 
 /**
  * View that fits a world rectangle into the viewport. `insets` reserves screen space

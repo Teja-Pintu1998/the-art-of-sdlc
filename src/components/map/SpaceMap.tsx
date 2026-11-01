@@ -19,6 +19,7 @@ import { PreviewCard } from "@/components/astronaut/PreviewCard";
 import { StationPanel } from "@/components/station/StationPanel";
 import { drawMiniMap, type MiniStation } from "@/lib/map/draw";
 import {
+  allBounds,
   centerOn,
   fitBounds,
   LABEL_MIN_SCALE,
@@ -43,6 +44,7 @@ import {
   nearestStation,
   recommendedNext,
   stepStation,
+  zoomKey,
 } from "@/lib/map/navigation";
 import { PHASES, phaseOf, type Station, STATIONS, stationById } from "@/lib/map/stations";
 import { usePrefersReducedMotion } from "@/lib/use-prefers-reduced-motion";
@@ -114,7 +116,7 @@ const DEFAULT_CARD: Size = { w: 288, h: 170 };
 const viewportSize = (): Size => ({ w: window.innerWidth, h: window.innerHeight });
 
 const astronautLabel = (st: Station) =>
-  `Astronaut at station ${st.id}: ${st.name}. Use the arrow keys to move between stations and Enter to open one.`;
+  `Astronaut at station ${st.id}: ${st.name}. Use the arrow keys to move between stations and Enter to open one. Plus and minus zoom, 0 shows the whole map.`;
 
 export function SpaceMap({
   currentStationId = 1,
@@ -245,8 +247,16 @@ export function SpaceMap({
       const el = planetRefs.current[i];
       if (!el) return;
       const p = toScreen(v, st.x, st.y);
-      el.style.transform = `translate3d(${p.x - st.r}px, ${p.y - st.r}px, 0) scale(${planetScale(st.r, v.s)})`;
+      const scale = planetScale(st.r, v.s);
+      el.style.transform = `translate3d(${p.x - st.r}px, ${p.y - st.r}px, 0) scale(${scale})`;
       if (el.dataset.labels !== labels) el.dataset.labels = labels;
+      // Zoomed out, locked planets keep a lock badge at a fixed on-screen size (colour is never the
+      // only signal). Written only when it changes, so panning stays style-recalc free.
+      if (el.dataset.locked === "true") {
+        const inv = labels === "off" ? (1 / scale).toFixed(3) : "1";
+        if (el.style.getPropertyValue("--planet-inv") !== inv)
+          el.style.setProperty("--planet-inv", inv);
+      }
     });
 
     const k = sectorScale(v.s);
@@ -612,6 +622,32 @@ export function SpaceMap({
     return () => document.removeEventListener("keydown", onDocKey);
   }, [panelOpen, stepBy]);
 
+  // Keyboard zoom (WCAG 2.1.1, AOS-2 review): + / - zoom around the middle of the visible map, 0 fits
+  // the whole journey. With Ctrl/Cmd/Alt the browser's own page zoom keeps working.
+  useEffect(() => {
+    const onZoomKey = (e: globalThis.KeyboardEvent) => {
+      if (panelOpen || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const zoom = zoomKey(e.key);
+      if (zoom === null) return;
+      const focused = document.activeElement;
+      const typing =
+        focused instanceof HTMLElement &&
+        (focused.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName));
+      const onMap = !focused || focused === document.body || rootRef.current?.contains(focused);
+      if (typing || !onMap) return;
+      e.preventDefault();
+      const viewport = viewportSize();
+      const top = topInset.current;
+      view.current =
+        zoom === "fit"
+          ? fitBounds(allBounds(), viewport, { top })
+          : zoomAt(view.current, zoom, viewport.w / 2, top + (viewport.h - top) / 2);
+      applyView();
+    };
+    document.addEventListener("keydown", onZoomKey);
+    return () => document.removeEventListener("keydown", onZoomKey);
+  }, [panelOpen, applyView]);
+
   const onAstronautKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const delta = arrowDelta(e.key);
     if (delta !== 0) {
@@ -676,19 +712,32 @@ export function SpaceMap({
                 data-completed={completedIds.includes(st.id)}
                 onPointerEnter={(e) => e.pointerType === "mouse" && showTeaser(st)}
                 onPointerLeave={(e) => e.pointerType === "mouse" && showTeaser(null)}
-                className="planet absolute top-0 left-0 grid cursor-pointer place-items-center rounded-full font-heading text-[22px] font-bold text-white will-change-transform"
+                className="planet absolute top-0 left-0 cursor-pointer rounded-full font-heading text-[22px] font-bold text-white will-change-transform"
                 style={{
                   width: st.r * 2,
                   height: st.r * 2,
                   transformOrigin: "50% 50%",
-                  background: `radial-gradient(circle at 30% 30%, #ffffff88, ${st.color} 45%, #000000aa)`,
                   boxShadow: locked ? "none" : `0 0 ${st.r}px ${st.color}`,
-                  opacity: locked ? 0.4 : 1,
-                  filter: locked ? "saturate(0.35)" : undefined,
                   color: st.color,
                 }}
               >
-                <span className="planet-label text-white">{locked ? `🔒${st.id}` : st.id}</span>
+                {/* The body carries the dimming, so the lock badge (a sibling) keeps full contrast. */}
+                <span
+                  data-testid="planet-body"
+                  className="absolute inset-0 grid place-items-center rounded-full"
+                  style={{
+                    background: `radial-gradient(circle at 30% 30%, #ffffff88, ${st.color} 45%, #000000aa)`,
+                    opacity: locked ? 0.4 : 1,
+                    filter: locked ? "saturate(0.35)" : undefined,
+                  }}
+                >
+                  <span className="planet-label text-white">{locked ? `🔒${st.id}` : st.id}</span>
+                </span>
+                {locked && (
+                  <span className="planet-lock-badge" data-testid="lock-badge">
+                    🔒
+                  </span>
+                )}
               </div>
             );
           })}

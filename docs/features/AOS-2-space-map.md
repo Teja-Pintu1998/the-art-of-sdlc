@@ -43,8 +43,8 @@
 - [ ] Linux visual baselines are created at final integration, from the CI `visual-results` artifact. Only macOS baselines exist now.
 - [ ] Firefox E2E runs in CI only (local Playwright Firefox fails to launch on this Mac).
 - [ ] The starfield redraws every frame even when idle. Consider pausing it when the tab is hidden, or after a period of inactivity, to save battery.
-- [ ] 🟡 Keyboard zoom and pan: arrow keys only move the astronaut, so keyboard users can't zoom out to see the whole map. Add `+`/`-` and `0` (fit all). *To QA triage.*
-- [ ] 🟡 Below 0.45× zoom the 🔒 hides with the numbers, so locked stations are marked only by dimming. Keep a small lock badge. *To QA triage.*
+- [x] 🟡 Keyboard zoom and pan: arrow keys only move the astronaut, so keyboard users can't zoom out to see the whole map. **Fixed in QA (P2):** `+`/`-` zoom around the middle of the visible map, `0` fits the whole journey; Ctrl/Cmd/Alt and text fields are left alone. Arrow keys still pan by moving the astronaut.
+- [x] 🟡 Below 0.45× zoom the 🔒 hides with the numbers, so locked stations are marked only by dimming. **Fixed in QA (P2):** a 16px lock badge, counter-scaled so it stays readable; the dimming moved to an inner body layer so the badge keeps full contrast. Zoomed-out visual baseline updated (macOS).
 - [ ] 🟢 Mini-map viewport box uses the full window height; subtract the hero (`topInset`).
 - [ ] 🟢 Star density scales with screen size (about 5× denser on a phone); scale the count to the viewport area.
 - [ ] 🟢 Mini-map canvas is fixed at 2×; use `devicePixelRatio`.
