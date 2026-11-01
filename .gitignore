@@ -38,3 +38,9 @@ npm-debug.log*
 .terraform/
 *.tfstate
 *.tfstate.*
+.terraform.tfstate.lock.info
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
+crash.*.log

@@ -21,6 +21,11 @@ describe("New Relic browser agent (AOS-10.1)", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("needs exactly 'on'", () => {
+    vi.stubEnv("NEXT_PUBLIC_NEW_RELIC", "true");
+    expect(render(<NewRelicAgent />).container).toBeEmptyDOMElement();
+  });
+
   it("loads the pinned agent with our app's settings on the real site", () => {
     vi.stubEnv("NEXT_PUBLIC_NEW_RELIC", "on");
     const { getByTestId } = render(<NewRelicAgent />);
@@ -35,6 +40,7 @@ describe("New Relic browser agent (AOS-10.1)", () => {
       privacy: { cookies_enabled: false },
       session_replay: { enabled: false },
       session_trace: { enabled: false },
+      distributed_tracing: { enabled: false },
     });
     expect(nreum.loader_config).toMatchObject({ applicationID: "653457490", accountID: "8688649" });
   });

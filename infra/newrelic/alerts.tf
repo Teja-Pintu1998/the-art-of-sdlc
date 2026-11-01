@@ -7,7 +7,8 @@ resource "newrelic_alert_policy" "site" {
 }
 
 resource "newrelic_nrql_alert_condition" "js_error_rate" {
-  policy_id                    = newrelic_alert_policy.site.id
+  policy_id = newrelic_alert_policy.site.id
+  # Views include in-app route changes (BrowserInteraction), not just full page loads.
   name                         = "JavaScript error rate above 1% of page views"
   description                  = "Check the Health page and 'Top JavaScript errors'; roll back the last release if it started with a deploy."
   enabled                      = true
@@ -19,7 +20,7 @@ resource "newrelic_nrql_alert_condition" "js_error_rate" {
   aggregation_timer  = 300
 
   nrql {
-    query = "SELECT filter(count(*), WHERE eventType() = 'JavaScriptError') * 100 / filter(count(*), WHERE eventType() = 'PageView') FROM JavaScriptError, PageView WHERE ${local.app}"
+    query = "SELECT filter(count(*), WHERE eventType() = 'JavaScriptError') * 100 / filter(count(*), WHERE eventType() IN ('PageView', 'BrowserInteraction')) FROM JavaScriptError, PageView, BrowserInteraction WHERE ${local.app}"
   }
 
   critical {

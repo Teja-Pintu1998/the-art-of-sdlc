@@ -4,7 +4,8 @@ locals {
 
 # One dashboard, two pages: "Is it useful?" (PRD KPIs) and "Is it healthy?" (what alerts watch).
 resource "newrelic_one_dashboard" "sdlc" {
-  name        = "The Art of SDLC"
+  name = "The Art of SDLC"
+  # Anyone in this New Relic account can view it (not the public internet).
   permissions = "public_read_only"
 
   page {
@@ -58,7 +59,7 @@ resource "newrelic_one_dashboard" "sdlc" {
       width  = 6
       height = 4
       nrql_query {
-        query = "SELECT percentage(count(*), WHERE helpful IS TRUE) AS 'Helpful %', count(*) AS 'Votes' FROM PageAction WHERE ${local.app} AND actionName = 'feedback_given' FACET station SINCE 30 days ago"
+        query = "SELECT percentage(count(*), WHERE helpful IS TRUE OR helpful = 'true') AS 'Helpful %', count(*) AS 'Votes' FROM PageAction WHERE ${local.app} AND actionName = 'feedback_given' FACET station SINCE 30 days ago"
       }
     }
   }
@@ -72,7 +73,7 @@ resource "newrelic_one_dashboard" "sdlc" {
       column = 1
       width  = 6
       nrql_query {
-        query = "SELECT filter(count(*), WHERE eventType() = 'JavaScriptError') * 100 / filter(count(*), WHERE eventType() = 'PageView') AS 'Error rate %' FROM JavaScriptError, PageView WHERE ${local.app} TIMESERIES SINCE 1 day ago"
+        query = "SELECT filter(count(*), WHERE eventType() = 'JavaScriptError') * 100 / filter(count(*), WHERE eventType() IN ('PageView', 'BrowserInteraction')) AS 'Error rate %' FROM JavaScriptError, PageView, BrowserInteraction WHERE ${local.app} TIMESERIES SINCE 1 day ago"
       }
     }
 

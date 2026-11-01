@@ -4,8 +4,7 @@ import { NEW_RELIC, newRelicConfigScript, newRelicEnabled } from "@/lib/analytic
 
 /**
  * Loads the New Relic browser agent on the deployed site only (AOS-10.1). The configuration runs
- * first; the agent itself loads when the browser is idle, so it doesn't slow down the page.
- * Page timings (LCP etc.) are still measured, because the browser buffers them.
+ * first, then the agent loads asynchronously after hydration.
  */
 export function NewRelicAgent() {
   if (!newRelicEnabled()) return null;
@@ -14,7 +13,9 @@ export function NewRelicAgent() {
       <Script id="nr-config" strategy="afterInteractive">
         {newRelicConfigScript()}
       </Script>
-      <Script id="nr-loader" src={NEW_RELIC.loaderUrl} strategy="lazyOnload" />
+      {/* Must come after the config. Async, so it doesn't block the page, but early enough to
+          catch errors and events from the first interactions. */}
+      <Script id="nr-loader" src={NEW_RELIC.loaderUrl} strategy="afterInteractive" />
     </>
   );
 }

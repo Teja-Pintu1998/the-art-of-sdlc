@@ -32,10 +32,22 @@ source ../../.env.newrelic.local   # NEW_RELIC_API_KEY
 terraform init && terraform plan && terraform apply
 ```
 
+## Review fixes
+
+Code review: APPROVE (no blockers). Applied:
+- **Error rate counts in-app route changes** (`BrowserInteraction`) as views, not just full page loads.
+- **The "% helpful" widget** works whether `helpful` is stored as a boolean or a string.
+- **The agent loads `afterInteractive`** (still async), so early errors and events aren't lost.
+- **More Terraform files git-ignored:** `*.tfvars`, plans and crash logs.
+- **Tests** check that distributed tracing is off, and that the agent turns on only for exactly `on`.
+
 ## Follow-ups
 
 - [ ] **Rotate the `NRAK-` key** (it was pasted in a chat).
 - [ ] At deploy (AOS-1.7), build with `NEXT_PUBLIC_NEW_RELIC=on`, and add the production domain in the browser app's settings.
 - [ ] Check the "% helpful" widget once real `feedback_given` events arrive (whether `helpful` is stored as a boolean).
 - [ ] Tune the alert thresholds after launch with real traffic. If anyone needs to be notified, add a channel (email, Slack or PagerDuty).
+- [ ] 🟡 At low traffic, one error in a few views exceeds 1%. Consider a minimum-traffic guard or an absolute count until traffic grows.
+- [ ] 🟢 Consider `user_actions: { enabled: false }` if "anonymous" should exclude click targets.
+- [ ] 🟢 Terraform state is local only; add a remote backend if someone else needs to run it.
 - [ ] Station #34's "How we did it" (AOS-9.4) uses this dashboard, after launch.
