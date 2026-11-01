@@ -1,10 +1,10 @@
-// Fails if coverage dropped below the committed baseline (coverage/coverage-baseline.json).
+// Fails if coverage dropped below the committed baseline (tests/coverage-baseline.json).
 // Update the baseline with `npm run coverage:baseline` when coverage legitimately rises.
 import { readFileSync } from "node:fs";
 
 const read = (path) => JSON.parse(readFileSync(path, "utf8")).total;
 const current = read("coverage/coverage-summary.json");
-const baseline = read("coverage/coverage-baseline.json");
+const baseline = read("tests/coverage-baseline.json");
 
 const TOLERANCE = 0.5; // percentage points, to absorb rounding noise
 const drops = ["lines", "branches", "functions", "statements"]
