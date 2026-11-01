@@ -37,7 +37,7 @@ Story points measure relative size (effort, complexity and uncertainty), not hou
 | Sprint 2 | Stations you can open, and progress | AOS-4, AOS-5 | 13 |
 | Sprint 3 | Onboarding and first content | AOS-6, AOS-7 | 13 |
 | Sprint 4 | Engineering content and monitoring | AOS-8, AOS-10 | 13 |
-| Sprint 5 | Release | AOS-1.6 Docker and 1.7 Cloud Run environments, then QA, UAT, CR, go/no-go, canary launch (build steps 22–37); AOS-9 written along the way | 5 |
+| Sprint 5 | Release | AOS-1.6 Docker (built in CI) and 1.7 Vercel environments (SC-3), then QA, UAT, CR, go/no-go, canary launch (build steps 22–37); AOS-9 written along the way | 5 |
 
 **Target v1 launch:** mid-December 2026, based on the **1-week sprints** agreed at kickoff (6 sprints from 2026-11-01). If a sprint slips, the date is reviewed at the sprint review.
 

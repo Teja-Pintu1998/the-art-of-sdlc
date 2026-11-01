@@ -96,7 +96,8 @@ docs/                  → project docs; docs/features/ per built feature
 | ADR-1 | DOM + Framer Motion map with semantic zoom | PixiJS canvas | Spike: equally smooth, but accessible, SEO-friendly, 3× smaller |
 | ADR-2 | Pre-built pages with Next.js in a standalone container | Client-only SPA; static export | SEO plus Docker plus a canary-capable runtime |
 | ADR-3 | MDX content validated at build time | JSON; a headless CMS | Easy to write, version-controlled, no extra service |
-| ADR-4 | Google Cloud Run for hosting | Vercel; AWS App Runner; Fly.io | Runs our Docker image, native traffic splitting for **real canary releases**, instant rollback, free tier |
+| ADR-4 | ~~Google Cloud Run for hosting~~ **Superseded by ADR-6** | Vercel; AWS App Runner; Fly.io | Runs our Docker image, native traffic splitting for **real canary releases**, instant rollback, free tier |
+| ADR-6 | **Vercel (Hobby) for hosting** (2026-11-01, PRD SC-3) | Google Cloud Run (needs a card); Netlify; Cloudflare Pages | Free with no card, built by the Next.js team, preview URL per branch and PR, instant rollback. Trade-offs: no Docker at runtime (the image is still built and scanned in CI), and traffic splitting is paid, so the canary approach is decided at that step. Diagram above shows the original Cloud Run plan |
 | ADR-5 | New Relic for monitoring **and** KPI analytics, no cookies or browser storage | Separate analytics tool | One tool, no consent banner, matches the monitoring stations |
 | ADR-6 | Browser storage for progress | Accounts and a database | No personal data in v1; accounts are a v2 item |
 
