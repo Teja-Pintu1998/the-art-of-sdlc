@@ -21,6 +21,9 @@ async function seriousViolations(page: Page) {
 }
 
 test.describe("astronaut", () => {
+  // Tall enough for stations 1 and 2 to both fit below the hero at 2× zoom.
+  test.use({ viewport: { width: 1280, height: 1000 } });
+
   for (const s of [0.4, 1, 2]) {
     test(`drag tracks the cursor and snaps to the nearest station at ${s}× zoom`, async ({
       page,
@@ -28,8 +31,10 @@ test.describe("astronaut", () => {
       await openMap(page);
       // Centre the view between stations 1 and 2 at this zoom.
       await page.evaluate((scale) => {
-        const { innerWidth: w, innerHeight: h } = window;
-        window.__aosMap!.setView({ s: scale, x: w / 2 - 330 * scale, y: h / 2 - 1350 * scale });
+        // Station 1 just below the landing hero, station 2 further down.
+        const { innerWidth: w } = window;
+        const top = document.querySelector("header")!.getBoundingClientRect().bottom;
+        window.__aosMap!.setView({ s: scale, x: w / 2 - 330 * scale, y: top + 80 - 1200 * scale });
       }, s);
       const from = await center(page, '[data-testid="astronaut"]');
       const to = await center(page, '[data-station="2"]');
@@ -110,6 +115,21 @@ test.describe("astronaut", () => {
     await page.keyboard.press("Escape");
     await expect(card).toBeHidden();
     await expect(astronaut).toBeFocused();
+  });
+
+  test("arrow keys work after clicking the map, without tabbing to the astronaut", async ({
+    page,
+  }) => {
+    await openMap(page);
+    await page.mouse.click(200, 900); // empty space: focus is on the page, not the astronaut
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    expect(await current(page)).toBe(3);
+    await expect(page.getByTestId("astronaut")).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("ArrowRight"); // inside the panel: the map doesn't move
+    expect(await current(page)).toBe(3);
   });
 
   test("'Enter station →' on the card opens the panel", async ({ page }) => {

@@ -39,7 +39,8 @@
 | Visual regression | 4 baselines updated (astronaut and recommended ring); stable over 3 runs |
 | Benchmark (`npm run bench:map`) | **60 fps** at 1× and 4× · **59.5 fps** at 20× (3 runs: 59.3–59.7) |
 
-- **PO finding: the map slid under the landing hero after zooming.** The hero is a fixed overlay, and only the opening view reserved space for it. Now, on the first pan, zoom, drag, keypress, tap or mini-map jump, the hero shrinks to a compact top-left title and the tagline and hint hide. A new E2E test zooms out with the wheel and checks that no visible hero text overlaps any planet or sector title. The opening view is checked the same way.
+- **PO finding: the map slid under the landing hero after zooming.** The hero stays big and centred at the top, and the map (path, planets, sector titles, astronaut) is clipped at the hero's bottom edge with `clip-path`. Resizing re-measures it. The preview card and keyboard moves stay below it. An E2E test zooms out, drags the map up, and samples points across the hero to check that no map element is drawn there. *(A first attempt that shrank the hero after the first interaction was rejected by the PO: the title must stay visible.)*
+- **PO finding: the arrow keys only worked after tabbing to the astronaut.** They now work whenever focus is on the map or page: they move the astronaut and focus it, so Enter opens the station straight after. They're ignored while the panel is open or another control outside the map has focus.
 
 ## Lessons
 
@@ -58,6 +59,8 @@
 - **jsdom doesn't implement `inert`, but real browsers do.** After adding `inert`, closing the panel returned focus to nothing, because the astronaut was still inert when `focus()` ran. Only the Playwright E2E test caught it. Focus now moves after the re-render. Keep focus-return checks in E2E, not only in unit tests.
 
 ## Follow-ups
+
+- [ ] The map's cut-off line under the hero is a hard edge; a short fade (mask) could look softer. Check the frame-rate cost first.
 
 - [ ] Decide in AOS-4 whether station summaries stay only in the manifest or move into the MDX frontmatter (and are validated against it).
 - [ ] The starfield still redraws (at 30 fps) when nothing moves. Pause it when the tab is hidden (`visibilitychange`) to save battery.

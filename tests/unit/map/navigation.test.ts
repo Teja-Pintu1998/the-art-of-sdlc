@@ -80,6 +80,12 @@ describe("cardPlacement", () => {
     expect(cardPlacement({ x: 400, y: 899 }, 40, card, viewport).y).toBe(900 - 160 - 8);
   });
 
+  it("never goes above minY (the bottom of the landing hero)", () => {
+    expect(cardPlacement({ x: 400, y: 100 }, 40, card, viewport, 180).y).toBe(188);
+    const phone = { w: 375, h: 700 };
+    expect(cardPlacement({ x: 180, y: 600 }, 30, card, phone, 500).y).toBeGreaterThanOrEqual(508);
+  });
+
   it("goes below (or above) the planet on narrow screens, never covering it", () => {
     const phone = { w: 375, h: 700 };
     const below = cardPlacement({ x: 180, y: 200 }, 30, card, phone);

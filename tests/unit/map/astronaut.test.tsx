@@ -413,3 +413,34 @@ describe("review fixes (AOS-3)", () => {
     expect(screen.getAllByTestId("announcer")[1]).toHaveTextContent("This is the last station.");
   });
 });
+
+describe("arrow keys anywhere on the map (PO feedback)", () => {
+  it("move the astronaut and focus it when focus is on the page", () => {
+    renderMap();
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    expect(current()).toBe(2);
+    expect(astronaut()).toHaveFocus();
+  });
+
+  it("are ignored while the panel is open, and for other keys", () => {
+    renderMap();
+    act(() => astronaut().focus());
+    key("Enter");
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    expect(current()).toBe(1);
+    key("Escape");
+    act(() => astronaut().blur());
+    fireEvent.keyDown(document.body, { key: "a" });
+    expect(current()).toBe(1);
+  });
+
+  it("leave focused controls outside the map alone", () => {
+    renderMap();
+    const outside = document.createElement("button");
+    document.body.appendChild(outside);
+    act(() => outside.focus());
+    fireEvent.keyDown(outside, { key: "ArrowRight" });
+    expect(current()).toBe(1);
+    outside.remove();
+  });
+});

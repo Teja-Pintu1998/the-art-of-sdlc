@@ -116,14 +116,16 @@ describe("SpaceMap", () => {
     pointer("pointerup", map, 1, 100, 100);
   });
 
-  it("shrinks the landing hero once the user explores, but not before", () => {
-    renderMap();
-    const overlay = screen.getByTestId("map-overlay");
-    expect(overlay.dataset.explored).toBeUndefined();
-    act(() => api().setView({ x: 0, y: 0, s: 1 })); // programmatic views don't count
-    expect(overlay.dataset.explored).toBeUndefined();
-    fireEvent.wheel(screen.getByTestId("space-map"), { deltaY: 100, clientX: 0, clientY: 0 });
-    expect(overlay.dataset.explored).toBe("true");
+  it("clips the map below the landing hero, and re-measures on resize", () => {
+    const { container } = renderMap();
+    const clip = screen.getByTestId("map-viewport");
+    expect(clip.style.clipPath).toBe("inset(0px 0 0 0)"); // jsdom: no layout, hero height 0
+    const overlay = container.querySelector("h1")!.closest("div")!;
+    vi.spyOn(overlay, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 0, y: 0, width: 1024, height: 150 }),
+    );
+    fireEvent(window, new Event("resize"));
+    expect(clip.style.clipPath).toBe("inset(150px 0 0 0)");
   });
 
   it("zooms with the mouse wheel and respects the maximum zoom", () => {

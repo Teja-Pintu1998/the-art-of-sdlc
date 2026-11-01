@@ -113,6 +113,9 @@ export function SpaceMap({
   const sectorRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const view = useRef<View>({ x: 0, y: 0, s: 1 });
+  const mapClipRef = useRef<HTMLDivElement>(null);
+  /** Height (px) reserved for the landing hero; the map is clipped below it. */
+  const topInset = useRef(0);
   const cardSize = useRef<Size>(DEFAULT_CARD);
   const hoveredRef = useRef<PlacedStation | null>(null);
   const currentRef = useRef(start.id);
@@ -137,15 +140,6 @@ export function SpaceMap({
   const recommended = recommendedNext(availableIds, completedIds);
   const getView = useCallback(() => view.current, []);
 
-  /**
-   * The first time the user explores (pan, zoom, drag, keys, tap, mini-map), the landing hero
-   * shrinks to a compact title so the map is never hidden under it. Imperative: no re-render.
-   */
-  const markExplored = useCallback(() => {
-    const el = overlayRef.current;
-    if (el && el.dataset.explored !== "true") el.dataset.explored = "true";
-  }, []);
-
   const placeTeaser = useCallback(() => {
     const el = teaserRef.current;
     const st = hoveredRef.current;
@@ -164,6 +158,26 @@ export function SpaceMap({
     el.style.transform = `translate3d(${p.x - half}px, ${p.y - half}px, 0)`;
   }, [ax, ay]);
 
+  /**
+   * The landing hero stays at the top; the map lives below it and is clipped at the hero's bottom
+   * edge, so the path, planets and astronaut never touch the title (PO feedback, AOS-3).
+   */
+  const measureTopInset = useCallback(() => {
+    const overlayBottom = overlayRef.current?.getBoundingClientRect().bottom ?? 0;
+    // On short landscape phones the hero can be tall; never reserve more than half the screen.
+    const top = Math.round(Math.min(overlayBottom, window.innerHeight / 2));
+    topInset.current = top;
+    if (mapClipRef.current) mapClipRef.current.style.clipPath = `inset(${top}px 0 0 0)`;
+  }, []);
+
+  /** View that centres a world point in the map area below the hero. */
+  const centerInMap = useCallback((wx: number, wy: number, s: number): View => {
+    const vp = viewportSize();
+    const top = topInset.current;
+    const v = centerOn(wx, wy, s, { w: vp.w, h: vp.h - top });
+    return { ...v, y: v.y + top };
+  }, []);
+
   /** The card sits beside the current station's planet and never covers it. */
   const placeCard = useCallback(() => {
     const el = cardRef.current;
@@ -172,7 +186,7 @@ export function SpaceMap({
     const v = view.current;
     const p = toScreen(v, st.x, st.y);
     const r = Math.max(st.r * planetScale(st.r, v.s), ASTRONAUT_SIZE / 2);
-    const box = cardPlacement(p, r, cardSize.current, viewportSize());
+    const box = cardPlacement(p, r, cardSize.current, viewportSize(), topInset.current);
     el.style.transform = `translate3d(${box.x}px, ${box.y}px, 0)`;
     el.dataset.side = box.side;
   }, []);
@@ -252,7 +266,6 @@ export function SpaceMap({
     (id: number, { keepInView = true }: { keepInView?: boolean } = {}) => {
       const st = PLACED_STATIONS[id - 1];
       if (!st) return;
-      markExplored();
       currentRef.current = id;
       setCurrentId(id);
       if (reducedRef.current) {
@@ -267,10 +280,10 @@ export function SpaceMap({
         const vp = viewportSize();
         const outside =
           p.x < KEEP_IN_VIEW ||
-          p.y < KEEP_IN_VIEW ||
+          p.y < topInset.current + KEEP_IN_VIEW ||
           p.x > vp.w - KEEP_IN_VIEW ||
           p.y > vp.h - KEEP_IN_VIEW;
-        if (outside) view.current = centerOn(st.x, st.y, view.current.s, vp);
+        if (outside) view.current = centerInMap(st.x, st.y, view.current.s);
       }
       openCard();
       setAnnouncement(
@@ -278,7 +291,7 @@ export function SpaceMap({
       );
       applyView();
     },
-    [ax, ay, applyView, isLocked, openCard, markExplored],
+    [ax, ay, applyView, isLocked, openCard, centerInMap],
   );
 
   /** Snap back to the current station without changing anything else (drop in empty space). */
@@ -317,11 +330,8 @@ export function SpaceMap({
 
   // Opening view: fit the current station's phase, below the landing overlay. Runs before paint.
   useLayoutEffect(() => {
-    const vp = viewportSize();
-    const overlayBottom = overlayRef.current?.getBoundingClientRect().bottom ?? 0;
-    // On short landscape phones the hero can be tall; never reserve more than half the screen.
-    const top = Math.min(overlayBottom, vp.h / 2);
-    view.current = fitBounds(phaseBounds(start.phase), vp, { top });
+    measureTopInset();
+    view.current = fitBounds(phaseBounds(start.phase), viewportSize(), { top: topInset.current });
     applyView();
     if (layerRef.current) layerRef.current.style.opacity = "1";
     // Only on first mount: later station changes move the astronaut, not the camera.
@@ -382,7 +392,6 @@ export function SpaceMap({
       const cur = { x: e.clientX, y: e.clientY };
       pointers.set(e.pointerId, cur);
       if (pointers.size === 1) {
-        markExplored();
         view.current = panBy(view.current, cur.x - prev.x, cur.y - prev.y);
       } else if (pointers.size === 2) {
         const d = distance();
@@ -390,7 +399,6 @@ export function SpaceMap({
           pinchDist = d; // fingers started on the same spot
         } else {
           const [a, b] = [...pointers.values()] as [Point, Point];
-          markExplored();
           view.current = zoomAt(view.current, d / pinchDist, (a.x + b.x) / 2, (a.y + b.y) / 2);
           pinchDist = d;
         }
@@ -414,7 +422,6 @@ export function SpaceMap({
       // Let the panel, card and mini-map scroll normally; only the map background zooms.
       if (e.target instanceof Element && e.target.closest("[data-no-pan]")) return;
       e.preventDefault();
-      markExplored();
       const delta = e.deltaY * (e.deltaMode === 1 ? LINE_HEIGHT_PX : 1);
       view.current = zoomAt(
         view.current,
@@ -431,7 +438,11 @@ export function SpaceMap({
     root.addEventListener("pointercancel", cancel);
     root.addEventListener("lostpointercapture", cancel);
     root.addEventListener("wheel", wheel, { passive: false });
-    window.addEventListener("resize", applyView);
+    const onResize = () => {
+      measureTopInset();
+      applyView();
+    };
+    window.addEventListener("resize", onResize);
     return () => {
       root.removeEventListener("pointerdown", down);
       root.removeEventListener("pointermove", move);
@@ -439,9 +450,9 @@ export function SpaceMap({
       root.removeEventListener("pointercancel", cancel);
       root.removeEventListener("lostpointercapture", cancel);
       root.removeEventListener("wheel", wheel);
-      window.removeEventListener("resize", applyView);
+      window.removeEventListener("resize", onResize);
     };
-  }, [applyView, moveTo, closeCard, markExplored]);
+  }, [applyView, moveTo, closeCard, measureTopInset]);
 
   useEffect(() => {
     window.__aosMap = { getView, setView, getCurrentStation: () => currentRef.current };
@@ -459,7 +470,6 @@ export function SpaceMap({
 
   // --- Astronaut input ---
   const onDragStart = () => {
-    markExplored();
     ax.stop();
     ay.stop();
     dragOrigin.current = { x: ax.get(), y: ay.get() };
@@ -488,16 +498,42 @@ export function SpaceMap({
     if (target === null) returnHome();
     else moveTo(target, { keepInView: false });
   };
-  const onAstronautKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    const delta = arrowDelta(e.key);
-    if (delta !== 0) {
-      e.preventDefault();
+  const stepBy = useCallback(
+    (delta: number) => {
       const next = stepStation(currentRef.current, delta, STATIONS.length);
       if (next === currentRef.current) {
         setAnnouncement(delta < 0 ? "This is the first station." : "This is the last station.");
         return;
       }
       moveTo(next);
+    },
+    [moveTo],
+  );
+
+  // Arrow keys work anywhere on the map, not only when the astronaut has focus (PO feedback):
+  // they move the astronaut and focus it, so Enter opens the station right after.
+  useEffect(() => {
+    const onDocKey = (e: globalThis.KeyboardEvent) => {
+      if (panelOpen || e.defaultPrevented) return;
+      const delta = arrowDelta(e.key);
+      if (delta === 0) return;
+      const focused = document.activeElement;
+      if (focused === astroRef.current) return; // handled by onAstronautKey
+      const onMap = !focused || focused === document.body || rootRef.current?.contains(focused);
+      if (!onMap) return;
+      e.preventDefault();
+      stepBy(delta);
+      astroRef.current?.focus();
+    };
+    document.addEventListener("keydown", onDocKey);
+    return () => document.removeEventListener("keydown", onDocKey);
+  }, [panelOpen, stepBy]);
+
+  const onAstronautKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const delta = arrowDelta(e.key);
+    if (delta !== 0) {
+      e.preventDefault();
+      stepBy(delta);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       enterStation();
@@ -519,81 +555,84 @@ export function SpaceMap({
     >
       <Starfield getView={getView} reducedMotion={reducedMotion} />
 
-      {/* Visual map. Screen readers get the journey overview and the astronaut instead. */}
-      <div ref={layerRef} aria-hidden="true" inert={panelOpen} style={{ opacity: 0 }}>
-        <svg className="map-path pointer-events-none absolute inset-0 h-full w-full">
-          <path ref={glowRef} className="map-path-glow" />
-          <path ref={pathRef} data-testid="map-path" className="map-path-line" />
-        </svg>
+      {/* Map area: clipped below the landing hero (see measureTopInset). */}
+      <div ref={mapClipRef} data-testid="map-viewport" className="absolute inset-0">
+        {/* Visual map. Screen readers get the journey overview and the astronaut instead. */}
+        <div ref={layerRef} aria-hidden="true" inert={panelOpen} style={{ opacity: 0 }}>
+          <svg className="map-path pointer-events-none absolute inset-0 h-full w-full">
+            <path ref={glowRef} className="map-path-glow" />
+            <path ref={pathRef} data-testid="map-path" className="map-path-line" />
+          </svg>
 
-        {SECTORS.map((sec, i) => (
-          <div
-            key={sec.phase}
-            ref={(el) => {
-              sectorRefs.current[i] = el;
-            }}
-            data-testid="sector-title"
-            className="pointer-events-none absolute top-0 left-0 font-heading text-[64px] font-bold whitespace-nowrap opacity-85"
-            style={{ color: sec.color, transformOrigin: "50% 50%" }}
-          >
-            {sec.name}
-          </div>
-        ))}
-
-        {PLACED_STATIONS.map((st, i) => {
-          const locked = isLocked(st.id);
-          return (
+          {SECTORS.map((sec, i) => (
             <div
-              key={st.id}
+              key={sec.phase}
               ref={(el) => {
-                planetRefs.current[i] = el;
+                sectorRefs.current[i] = el;
               }}
-              data-testid="planet"
-              data-station={st.id}
-              data-locked={locked}
-              data-recommended={st.id === recommended}
-              onPointerEnter={(e) => e.pointerType === "mouse" && showTeaser(st)}
-              onPointerLeave={(e) => e.pointerType === "mouse" && showTeaser(null)}
-              className="planet absolute top-0 left-0 grid cursor-pointer place-items-center rounded-full font-heading text-[22px] font-bold text-white will-change-transform"
-              style={{
-                width: st.r * 2,
-                height: st.r * 2,
-                transformOrigin: "50% 50%",
-                background: `radial-gradient(circle at 30% 30%, #ffffff88, ${st.color} 45%, #000000aa)`,
-                boxShadow: locked ? "none" : `0 0 ${st.r}px ${st.color}`,
-                opacity: locked ? 0.4 : 1,
-                filter: locked ? "saturate(0.35)" : undefined,
-                color: st.color,
-              }}
+              data-testid="sector-title"
+              className="pointer-events-none absolute top-0 left-0 font-heading text-[64px] font-bold whitespace-nowrap opacity-85"
+              style={{ color: sec.color, transformOrigin: "50% 50%" }}
             >
-              <span className="planet-label text-white">{locked ? `🔒${st.id}` : st.id}</span>
+              {sec.name}
             </div>
-          );
-        })}
+          ))}
 
-        {teaserVisible && (
-          <div
-            ref={teaserRef}
-            data-testid="station-teaser"
-            className="pointer-events-none absolute top-0 left-0 max-w-64 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-sm shadow-lg"
-          >
-            <p className="font-heading font-semibold">
-              #{hovered.id} {hovered.name}
-            </p>
-            {isLocked(hovered.id) && <p className="text-muted">🔒 Coming soon</p>}
-          </div>
-        )}
+          {PLACED_STATIONS.map((st, i) => {
+            const locked = isLocked(st.id);
+            return (
+              <div
+                key={st.id}
+                ref={(el) => {
+                  planetRefs.current[i] = el;
+                }}
+                data-testid="planet"
+                data-station={st.id}
+                data-locked={locked}
+                data-recommended={st.id === recommended}
+                onPointerEnter={(e) => e.pointerType === "mouse" && showTeaser(st)}
+                onPointerLeave={(e) => e.pointerType === "mouse" && showTeaser(null)}
+                className="planet absolute top-0 left-0 grid cursor-pointer place-items-center rounded-full font-heading text-[22px] font-bold text-white will-change-transform"
+                style={{
+                  width: st.r * 2,
+                  height: st.r * 2,
+                  transformOrigin: "50% 50%",
+                  background: `radial-gradient(circle at 30% 30%, #ffffff88, ${st.color} 45%, #000000aa)`,
+                  boxShadow: locked ? "none" : `0 0 ${st.r}px ${st.color}`,
+                  opacity: locked ? 0.4 : 1,
+                  filter: locked ? "saturate(0.35)" : undefined,
+                  color: st.color,
+                }}
+              >
+                <span className="planet-label text-white">{locked ? `🔒${st.id}` : st.id}</span>
+              </div>
+            );
+          })}
+
+          {teaserVisible && (
+            <div
+              ref={teaserRef}
+              data-testid="station-teaser"
+              className="pointer-events-none absolute top-0 left-0 max-w-64 rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-sm shadow-lg"
+            >
+              <p className="font-heading font-semibold">
+                #{hovered.id} {hovered.name}
+              </p>
+              {isLocked(hovered.id) && <p className="text-muted">🔒 Coming soon</p>}
+            </div>
+          )}
+        </div>
+
+        <Astronaut
+          elRef={astroRef}
+          inert={panelOpen}
+          label={astronautLabel(current)}
+          onDragStart={onDragStart}
+          onDragMove={onDragMove}
+          onDragEnd={onDragEnd}
+          onKeyDown={onAstronautKey}
+        />
       </div>
-
-      <Astronaut
-        elRef={astroRef}
-        inert={panelOpen}
-        label={astronautLabel(current)}
-        onDragStart={onDragStart}
-        onDragMove={onDragMove}
-        onDragEnd={onDragEnd}
-        onKeyDown={onAstronautKey}
-      />
 
       {cardOpen && (
         <PreviewCard
@@ -610,17 +649,13 @@ export function SpaceMap({
       <MiniMap
         canvasRef={miniRef}
         inert={panelOpen}
-        onNavigate={(w) => {
-          markExplored();
-          setView(centerOn(w.x, w.y, view.current.s, viewportSize()));
-        }}
+        onNavigate={(w) => setView(centerInMap(w.x, w.y, view.current.s))}
       />
 
       <div
         ref={overlayRef}
-        data-testid="map-overlay"
         inert={panelOpen}
-        className="map-overlay pointer-events-none absolute inset-x-0 top-0"
+        className="pointer-events-none absolute inset-x-0 top-0"
       >
         {children}
       </div>

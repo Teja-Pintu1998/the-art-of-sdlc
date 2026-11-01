@@ -119,42 +119,58 @@ test.describe("space map", () => {
   });
 });
 
-test.describe("landing hero never hides the map", () => {
-  type Box = { x: number; y: number; width: number; height: number };
-  const overlaps = (a: Box, b: Box) =>
-    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
-
-  async function heroCollisions(page: Page) {
-    const heroBoxes = await page
-      .locator(".map-hero > *")
-      .evaluateAll((els) =>
-        els
-          .filter((el) => getComputedStyle(el).display !== "none")
-          .map((el) => el.getBoundingClientRect().toJSON() as DOMRect),
-      );
-    const mapBoxes = await page
-      .locator('[data-testid="sector-title"], [data-testid="planet"]')
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON() as DOMRect));
-    return heroBoxes.flatMap((h) => mapBoxes.filter((m) => overlaps(h, m)));
+test.describe("landing hero never touches the map (PO feedback)", () => {
+  /** Map elements drawn at any sampled point inside the hero (title, tagline, hint). */
+  async function mapElementsUnderHero(page: Page) {
+    return page.evaluate(() => {
+      const hero = document.querySelector("header")!.getBoundingClientRect();
+      const hits = new Set<string>();
+      for (let x = hero.left; x <= hero.right; x += 10) {
+        for (let y = hero.top; y < hero.bottom - 1; y += 6) {
+          for (const el of document.elementsFromPoint(x, y)) {
+            const id = (el as HTMLElement).dataset?.testid;
+            if (id === "planet" || id === "sector-title" || id === "astronaut") hits.add(id);
+          }
+        }
+      }
+      return [...hits];
+    });
   }
 
-  test("the opening view keeps the map below the hero", async ({ page }) => {
-    await openMap(page);
-    expect(await heroCollisions(page)).toEqual([]);
-  });
-
-  test("after zooming out, the hero shrinks to a compact title clear of the map", async ({
+  test("the hero stays visible and the map is never drawn under it while exploring", async ({
     page,
   }) => {
     await openMap(page);
+    expect(await mapElementsUnderHero(page)).toEqual([]);
+
+    // Zoom out (the PO's screenshot), then drag the whole map up into the hero area.
     await page.mouse.move(700, 600);
     for (let i = 0; i < 4; i++) await page.mouse.wheel(0, 400);
-    await expect(page.getByTestId("map-overlay")).toHaveAttribute("data-explored", "true");
-    await expect(page.getByText("npm install experience")).toBeHidden();
-    const h1 = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
-    expect(h1.height).toBeLessThan(40);
-    expect(h1.x).toBeLessThan(40);
-    expect(await heroCollisions(page)).toEqual([]);
+    await page.mouse.move(700, 600);
+    await page.mouse.down();
+    await page.mouse.move(700, 250, { steps: 6 });
+    await page.mouse.up();
+
+    await expect(page.getByRole("heading", { level: 1, name: "The Art of SDLC" })).toBeVisible();
+    await expect(page.getByText("npm install experience")).toBeVisible();
+    expect(await mapElementsUnderHero(page)).toEqual([]);
+  });
+
+  test("the preview card opens below the hero", async ({ page }) => {
+    await openMap(page);
+    await page.evaluate(() => {
+      // Put station 1 right under the hero's bottom edge.
+      const hero = document.querySelector("header")!.getBoundingClientRect();
+      window.__aosMap!.setView({ s: 1, x: 300, y: hero.bottom + 30 - 1200 });
+    });
+    await page.getByTestId("astronaut").focus();
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowLeft");
+    const heroBottom = await page.evaluate(
+      () => document.querySelector("header")!.getBoundingClientRect().bottom,
+    );
+    const card = (await page.getByTestId("preview-card").boundingBox())!;
+    expect(card.y).toBeGreaterThanOrEqual(heroBottom);
   });
 });
 

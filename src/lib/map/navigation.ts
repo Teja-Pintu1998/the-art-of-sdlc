@@ -51,15 +51,18 @@ const EDGE = 8;
 
 /**
  * Where to put the preview card so it sits beside the planet and never covers it:
- * to the right if it fits, otherwise to the left, otherwise below; always kept on screen.
+ * to the right if it fits, otherwise to the left, otherwise below; always kept on screen and
+ * below `minY` (the bottom of the landing hero).
  */
 export function cardPlacement(
   planet: Point,
   radius: number,
   card: Size,
   viewport: Size,
+  minY = 0,
 ): Rect & { side: "right" | "left" | "below" } {
-  const clampY = (y: number) => Math.min(viewport.h - card.h - EDGE, Math.max(EDGE, y));
+  const top = minY + EDGE;
+  const clampY = (y: number) => Math.max(top, Math.min(viewport.h - card.h - EDGE, y));
   const clampX = (x: number) => Math.min(viewport.w - card.w - EDGE, Math.max(EDGE, x));
   const y = clampY(planet.y - card.h / 2);
 
@@ -75,7 +78,7 @@ export function cardPlacement(
   const by = below + card.h <= viewport.h - EDGE ? below : planet.y - radius - CARD_GAP - card.h;
   return {
     x: clampX(planet.x - card.w / 2),
-    y: Math.max(EDGE, by),
+    y: Math.max(top, by),
     w: card.w,
     h: card.h,
     side: "below",
