@@ -185,9 +185,20 @@ const canaryId = STATIONS.find((s) => s.slug === "canary")!.id;
 
 describe("a lesson still being written", () => {
   it("says so and can't be completed", () => {
-    renderJourney(7);
-    fireEvent.click(screen.getByRole("button", { name: /Next/ }));
-    expect(screen.getByRole("dialog")).toHaveTextContent("#10");
+    // Pretend station 2's lesson isn't written, so this holds however many lessons exist.
+    const withoutPrd = Object.fromEntries(Object.entries(lessons).filter(([id]) => id !== "2"));
+    render(
+      <Journey
+        lessons={withoutPrd}
+        lessonIds={Object.keys(withoutPrd).map(Number)}
+        articles={articles}
+        availableIds={V1_STATION_IDS}
+        routeStationId={2}
+      >
+        <h1>The Art of SDLC</h1>
+      </Journey>,
+    );
+    expect(screen.getByRole("dialog")).toHaveTextContent("#2");
     expect(screen.getByTestId("lesson-pending")).toBeInTheDocument();
     expect(markButton()).toBeDisabled();
   });

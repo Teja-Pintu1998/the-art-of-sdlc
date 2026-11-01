@@ -21,7 +21,14 @@ describe("/lessons/<slug> route", () => {
   it("returns the lesson, or 404 for a station without one", async () => {
     const ok = await GET(new Request("http://x"), ctx("prd"));
     expect((await ok.json()).sections).toHaveLength(8);
-    expect((await GET(new Request("http://x"), ctx("git"))).status).toBe(404);
+    expect(
+      (
+        await GET(
+          new Request("http://x"),
+          ctx(STATIONS.find((st) => !written.includes(st.id))!.slug),
+        )
+      ).status,
+    ).toBe(404);
   });
 });
 
@@ -66,14 +73,14 @@ describe("lessons load on demand", () => {
   });
 
   it("never requests a lesson that isn't written", () => {
-    const unwritten = V1_STATION_IDS.find((id) => !written.includes(id))!;
+    // Pretend station 2's lesson isn't written, so this holds however many lessons exist.
     render(
       <Journey
         lessons={{}}
-        lessonIds={written}
+        lessonIds={written.filter((id) => id !== 2)}
         articles={[]}
         availableIds={V1_STATION_IDS}
-        routeStationId={unwritten}
+        routeStationId={2}
       >
         <h1>The Art of SDLC</h1>
       </Journey>,
