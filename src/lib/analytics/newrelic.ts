@@ -12,14 +12,14 @@ export const NEW_RELIC = {
   loaderUrl: "https://js-agent.newrelic.com/nr-loader-spa-1.324.1.min.js",
 } as const;
 
-/**
- * Agent only on the real site: set NEXT_PUBLIC_NEW_RELIC=on when building for deployment. Local
- * previews and tests don't send data, so our own clicking never pollutes the KPIs.
- */
 /** This deployment's version: the short commit SHA on Vercel, "local" elsewhere. */
 export const releaseName = () =>
   process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "local";
 
+/**
+ * Agent only on the real site: set NEXT_PUBLIC_NEW_RELIC=on when building for deployment. Local
+ * previews and tests don't send data, so our own clicking never pollutes the KPIs.
+ */
 export const newRelicEnabled = () => process.env.NEXT_PUBLIC_NEW_RELIC === "on";
 
 /** The agent's configuration script. Anonymous: no cookies, no browser storage, no replays. */
@@ -33,12 +33,14 @@ export function newRelicConfigScript(): string {
     ajax: { deny_list: ["bam.nr-data.net"] },
   };
   const loaderConfig = { accountID, trustKey, agentID, licenseKey, applicationID };
+  // jsAttributes tag every event from the start, so a canary can be compared with stable.
   const info = {
     beacon: "bam.nr-data.net",
     errorBeacon: "bam.nr-data.net",
     licenseKey,
     applicationID,
     sa: 1,
+    jsAttributes: { release: releaseName() },
   };
   return [
     "window.NREUM=window.NREUM||{};",

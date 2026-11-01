@@ -95,6 +95,18 @@
 4. Watch the dashboard's "Canary vs stable" table. Promote only once NEW has real page views and no worse errors or LCP.
 5. **Healthy:** raise the percentage (50), then promote: merge to `main`, and remove the canary vars. **Unhealthy:** set `CANARY_PERCENT=0` and redeploy, which puts everyone back on stable.
 
+### 1.7 review fixes
+
+Review of the canary router found these; all fixed, the router changes each with a unit test:
+
+- **Bypass secret could leak:** the canary target was built from the request path, so `//evil.example` could pick the host. The target now takes only the path and query; the origin always comes from `CANARY_URL`.
+- **`CANARY_URL` limited to our own deployments:** only `https://*.vercel.app` (or `localhost` for tests); anything else turns the canary off.
+- **Loop guard:** no routing if `CANARY_URL` is this same site.
+- **First request is always stable** (it sets the bucket cookie), so crawlers and cookie-less clients never reach the canary.
+- **Matcher:** static files skip the proxy, except `/_next/static` for visitors with a bucket (canary pages need the canary's files).
+- **Release tag from the first event:** `release` moved from the loader's `onLoad` into `NREUM.info.jsAttributes`.
+- CSP allows the Vercel toolbar on **preview** deployments only (UAT comments); the obsolete `interest-cohort` is gone from Permissions-Policy; "Sessions" removed from the canary-vs-stable widget.
+
 ## Follow-ups
 
 *(Non-blocking review suggestions, fixed in batches.)*
@@ -104,3 +116,5 @@
 - [ ] Lighthouse reports upload to temporary public storage; fine for a public repo, revisit if the repo goes private.
 - [ ] CI builds the app 5 times per run (quality, 3× E2E, visual, Lighthouse); build once and share it as an artifact when CI time matters.
 - [ ] README "how to run tests" section should point to `test:e2e:local` on macOS (write with the README dev-setup section).
+- [ ] **PO, before the first canary (Vercel dashboard):** generate "Protection Bypass for Automation" (`VERCEL_AUTOMATION_BYPASS_SECRET`), and tick **Preview** for `NEXT_PUBLIC_NEW_RELIC`. The canary is a preview deployment, so without it canary visitors send no data and "Canary vs stable" only shows stable.
+- [ ] Files in `public/` (outside `/_next/static`) are always served from stable, even to canary visitors. Fine while public assets don't change between releases.

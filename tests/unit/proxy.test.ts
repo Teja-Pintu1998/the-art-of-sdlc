@@ -51,6 +51,57 @@ describe("proxy: canary release (AOS-1.7)", () => {
     expect(unknown.headers.get("x-middleware-rewrite")).toContain("/_station-not-found");
   });
 
+  it("always serves a visitor's first request from stable, even with a low bucket", () => {
+    vi.stubEnv("CANARY_URL", CANARY);
+    vi.stubEnv("CANARY_PERCENT", "100"); // every bucket is in the canary
+    const res = withCookie("/");
+    expect(res.headers.get("x-aos-release")).toBe("stable");
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(res.cookies.get("aos-canary-bucket")).toBeDefined(); // routed from the next request on
+  });
+
+  it("treats an invalid cookie as a new visitor (stable, fresh cookie)", () => {
+    vi.stubEnv("CANARY_URL", CANARY);
+    vi.stubEnv("CANARY_PERCENT", "100");
+    const res = withCookie("/", "abc");
+    expect(res.headers.get("x-aos-release")).toBe("stable");
+    expect(res.cookies.get("aos-canary-bucket")).toBeDefined();
+  });
+
+  it("never lets the request path choose where the bypass secret goes", () => {
+    vi.stubEnv("CANARY_URL", CANARY);
+    vi.stubEnv("CANARY_PERCENT", "10");
+    vi.stubEnv("VERCEL_AUTOMATION_BYPASS_SECRET", "s3cret");
+    const req = new NextRequest(new URL("https://the-art-of-sdlc.vercel.app/x"));
+    req.nextUrl.pathname = "//evil.example/steal";
+    req.cookies.set("aos-canary-bucket", "3");
+    const rewrite = new URL(proxy(req).headers.get("x-middleware-rewrite") ?? "");
+    expect(rewrite.origin).toBe(CANARY);
+    expect(rewrite.pathname).toBe("//evil.example/steal");
+  });
+
+  it("doesn't route when CANARY_URL points at this same site (it would loop)", () => {
+    vi.stubEnv("CANARY_URL", "https://the-art-of-sdlc.vercel.app");
+    vi.stubEnv("CANARY_PERCENT", "100");
+    const res = withCookie("/", "0");
+    expect(res.headers.get("x-aos-release")).toBe("stable");
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it.each([
+    ["another site", "https://evil.example"],
+    ["a look-alike host", "https://evil.example/.vercel.app"],
+    ["plain http", "http://the-art-of-sdlc-new-rover19.vercel.app"],
+    ["not a URL", "nope"],
+  ])("ignores a CANARY_URL that is %s (canary off, secret never sent)", (_, url) => {
+    vi.stubEnv("CANARY_URL", url);
+    vi.stubEnv("CANARY_PERCENT", "100");
+    vi.stubEnv("VERCEL_AUTOMATION_BYPASS_SECRET", "s3cret");
+    const res = withCookie("/", "0");
+    expect(res.headers.get("x-aos-release")).toBeNull();
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
   it("gives a new visitor a sticky, anonymous bucket cookie", () => {
     vi.stubEnv("CANARY_URL", CANARY);
     vi.stubEnv("CANARY_PERCENT", "50");

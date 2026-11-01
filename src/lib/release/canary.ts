@@ -22,7 +22,10 @@ export function canaryConfig(env: Record<string, string | undefined>): CanaryCon
   } catch {
     return null;
   }
-  if (url.protocol !== "https:" && url.hostname !== "localhost") return null;
+  // Only our own Vercel deployments (or a local test server) can receive traffic and the secret.
+  const vercel = url.protocol === "https:" && url.hostname.endsWith(".vercel.app");
+  const local = url.hostname === "localhost";
+  if (!vercel && !local) return null;
   return {
     url,
     percent: Math.min(percent, 100),

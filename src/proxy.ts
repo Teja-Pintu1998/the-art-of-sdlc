@@ -37,9 +37,16 @@ export function proxy(request: NextRequest) {
 
   const { bucket, isNew } = bucketOf(request.cookies.get(BUCKET_COOKIE)?.value);
   let response: NextResponse;
-  if (inCanary(bucket, canary.percent)) {
+  // A visitor's first request is always stable (it sets the cookie); only returning visitors with a
+  // bucket are routed. So cookie-less clients and crawlers never land on the canary.
+  const sameHost = canary.url.host === request.nextUrl.host; // misconfigured: would loop
+  if (!isNew && !sameHost && inCanary(bucket, canary.percent)) {
     // Serve this request (page, data or static file) from the new version's deployment.
-    const target = new URL(request.nextUrl.pathname + request.nextUrl.search, canary.url);
+    // The origin always comes from CANARY_URL, never from the request: setting only the path and
+    // query means a path like "//evil.example" can't choose where we send the bypass secret.
+    const target = new URL(canary.url);
+    target.pathname = request.nextUrl.pathname;
+    target.search = request.nextUrl.search;
     const headers = new Headers(request.headers);
     if (canary.bypassSecret) headers.set("x-vercel-protection-bypass", canary.bypassSecret);
     response = NextResponse.rewrite(target, { request: { headers } });
@@ -62,6 +69,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything (canary visitors need every file from the new version) except image optimisation.
-  matcher: "/((?!_next/image).*)",
+  matcher: [
+    // Pages and data requests, but not static files (the CDN serves those directly).
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.[a-zA-Z0-9]+$).*)",
+    // Static files only for visitors with a canary bucket: canary pages need the canary's files.
+    { source: "/_next/static/:path*", has: [{ type: "cookie", key: "aos-canary-bucket" }] },
+  ],
 };

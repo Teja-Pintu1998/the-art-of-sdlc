@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { NewRelicAgent } from "@/components/analytics/NewRelicAgent";
@@ -43,15 +43,20 @@ describe("New Relic browser agent (AOS-10.1)", () => {
     expect(getByTestId("nr-config").textContent).toBe(newRelicConfigScript());
   });
 
-  it("tags events with this deployment's release, for canary comparisons", () => {
-    vi.stubEnv("NEXT_PUBLIC_NEW_RELIC", "on");
+  // Runs the config script and returns the release attribute every event is tagged with.
+  const releaseAttribute = () => {
+    const run = new Function("window", `${newRelicConfigScript()}; return window.NREUM;`);
+    return (run({}) as { info: { jsAttributes: unknown } }).info.jsAttributes;
+  };
+
+  it("tags every event, from the first, with this deployment's release (canary comparisons)", () => {
     vi.stubEnv("NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA", "9b28d36abcdef");
-    const setCustomAttribute = vi.fn();
-    window.newrelic = { addPageAction: vi.fn(), setCustomAttribute };
-    const { getByTestId } = render(<NewRelicAgent />);
-    fireEvent.click(getByTestId("nr-loader"));
-    expect(setCustomAttribute).toHaveBeenCalledWith("release", "9b28d36");
-    delete window.newrelic;
+    expect(releaseAttribute()).toEqual({ release: "9b28d36" });
+  });
+
+  it("tags local builds as 'local'", () => {
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA", "");
+    expect(releaseAttribute()).toEqual({ release: "local" });
   });
 
   it("is anonymous: no cookies, no session replay or traces", () => {
