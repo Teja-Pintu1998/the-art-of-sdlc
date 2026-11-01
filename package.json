@@ -17,7 +17,8 @@
     "test:visual": "playwright test --project=visual",
     "test:all": "npm test && npm run test:e2e:local && npm run test:visual",
     "test:e2e:local": "playwright test --project=chromium --project=webkit",
-    "coverage:baseline": "node -e \"const s=require('./coverage/coverage-summary.json');require('fs').writeFileSync('tests/coverage-baseline.json',JSON.stringify({total:s.total},null,2)+'\\\\n')\""
+    "coverage:baseline": "node -e \"const s=require('./coverage/coverage-summary.json');require('fs').writeFileSync('tests/coverage-baseline.json',JSON.stringify({total:s.total},null,2)+'\\\\n')\"",
+    "bench:map": "node scripts/bench-map.mjs"
   },
   "dependencies": {
     "framer-motion": "^14.9.0",

@@ -23,3 +23,38 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
 }
+
+/* Space map (AOS-2). The path is drawn in screen coordinates, so its width stays constant at every zoom. */
+.map-path-line {
+  fill: none;
+  stroke: #7dd3fc;
+  stroke-opacity: 0.7;
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 10 8;
+  animation: map-path-flow 1s linear infinite;
+}
+
+.map-path-glow {
+  fill: none;
+  stroke: #7dd3fc;
+  stroke-opacity: 0.15;
+  stroke-width: 8px;
+  stroke-linecap: round;
+}
+
+@keyframes map-path-flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+.planet[data-labels="off"] .planet-label {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-path-line {
+    animation: none;
+  }
+}
