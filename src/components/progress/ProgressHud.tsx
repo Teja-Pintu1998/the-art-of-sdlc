@@ -16,11 +16,17 @@ type Props = {
 export function ProgressHud({ rank, done, total, onReset }: Props) {
   const [confirming, setConfirming] = useState(false);
   const resetRef = useRef<HTMLButtonElement>(null);
+  const hudRef = useRef<HTMLDivElement>(null);
   const next = nextRank(rank, done, total);
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
     <div
+      ref={hudRef}
+      // Focus lands here after a confirmed reset, when the Reset link itself disappears.
+      tabIndex={-1}
+      aria-label="Your progress"
+      role="region"
       data-testid="progress-hud"
       data-no-pan
       // On phones it sits just above the mini-map (82px tall at bottom 16px); side by side from 640px.
@@ -70,7 +76,7 @@ export function ProgressHud({ rank, done, total, onReset }: Props) {
           labelledBy="reset-title"
           onClose={() => setConfirming(false)}
           testId="reset-dialog"
-          returnFocusTo={() => resetRef.current}
+          returnFocusTo={() => resetRef.current ?? hudRef.current}
         >
           <h2 id="reset-title" className="font-heading text-xl font-bold">
             Reset your progress?

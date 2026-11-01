@@ -10,9 +10,9 @@ describe("proxy: station addresses", () => {
     expect(run("/station/problem-statement").headers.get("x-middleware-rewrite")).toBeNull();
   });
 
-  it("rewrites unknown stations to the 404 page", () => {
-    expect(run("/station/nope").headers.get("x-middleware-rewrite")).toContain(
-      "/_station-not-found",
-    );
+  it("rewrites unknown and malformed stations to the 404 page", () => {
+    for (const path of ["/station/nope", "/station/%E0", "/station/%"]) {
+      expect(run(path).headers.get("x-middleware-rewrite")).toContain("/_station-not-found");
+    }
   });
 });

@@ -32,7 +32,10 @@ export function StationPanel({ station, phase, onClose, children }: Props) {
   // Escape must work even if a click on plain text moved focus out of the dialog (to <body>).
   useEffect(() => {
     const onDocKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape" && !panelRef.current?.contains(document.activeElement)) onClose();
+      if (e.key !== "Escape" || panelRef.current?.contains(document.activeElement)) return;
+      // Another dialog on top (the rank-up celebration) handles its own Escape.
+      if (document.querySelectorAll('[role="dialog"][aria-modal="true"]').length > 1) return;
+      onClose();
     };
     document.addEventListener("keydown", onDocKey);
     return () => document.removeEventListener("keydown", onDocKey);
