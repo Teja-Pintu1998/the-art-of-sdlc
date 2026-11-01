@@ -9,9 +9,11 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 
-# Test coverage (baseline is tracked)
+# Test output (coverage baseline is tracked)
 coverage/*
 !coverage/coverage-baseline.json
+test-results/
+playwright-report/
 
 # Environment variables
 .env*
