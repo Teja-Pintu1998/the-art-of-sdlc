@@ -1,8 +1,8 @@
-# AOS-7: Content: planning and design stations ⏳ awaiting PO sign-off
+# AOS-7: Content: planning and design stations ✅
 
 > **As a** learner, **I want** interview-ready lessons on how work is planned and designed, **so that** I can talk confidently about the start of a project.
 
-**Status:** all 5 lessons written on `develop` (Sprint 3). **Each needs the PO's sign-off before publishing** (AOS-7 acceptance criteria).
+**Status:** all 5 lessons written on `develop` (Sprint 3). **Signed off by the PO on 2026-11-01** ("looks good").
 
 ## Lessons
 
@@ -22,5 +22,5 @@ Each "How we did it" quotes our real artifacts: the PRD review (RC-1, RC-2), the
 
 ## Follow-ups
 
-- [ ] **PO sign-off** of lessons 1, 2, 3, 4 and 7.
+- [x] PO sign-off of lessons 1, 2, 3, 4 and 7 (2026-11-01).
 - [ ] Before AOS-8 (14 lessons), send only the open station's lesson to the browser (from the AOS-4 review).
