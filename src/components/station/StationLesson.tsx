@@ -10,6 +10,9 @@ import { FeedbackPrompt } from "./FeedbackPrompt";
 type Props = {
   station: Station;
   lesson: Lesson | undefined;
+  /** "loading" while a written lesson is fetched; "error" if that failed; "unwritten" if none yet. */
+  status: "ready" | "loading" | "error" | "unwritten";
+  onRetry: () => void;
   completed: boolean;
   onToggleComplete: () => void;
   prev: Station | null;
@@ -31,6 +34,8 @@ const navButton =
 export function StationLesson({
   station,
   lesson,
+  status,
+  onRetry,
   completed,
   onToggleComplete,
   prev,
@@ -80,6 +85,21 @@ export function StationLesson({
             </p>
           )}
         </>
+      ) : status === "loading" ? (
+        <p data-testid="lesson-loading" role="status" className="mt-6 text-base text-muted">
+          Loading the lesson…
+        </p>
+      ) : status === "error" ? (
+        <div data-testid="lesson-error" role="alert" className="mt-6 rounded-xl bg-slate-900 p-4">
+          <p className="text-base">The lesson couldn&apos;t be loaded. Check your connection.</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:border-accent focus-visible:outline-2 focus-visible:outline-yellow-300"
+          >
+            Try again
+          </button>
+        </div>
       ) : (
         <p data-testid="lesson-pending" className="mt-6 rounded-xl bg-slate-900 p-4 text-base">
           ✍️ This lesson is being written and arrives in a later release.

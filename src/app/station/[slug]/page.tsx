@@ -30,10 +30,14 @@ export async function generateMetadata({
 export default async function StationPage({ params }: PageProps<"/station/[slug]">) {
   const station = stationBySlug((await params).slug);
   if (!station) notFound();
+  const all = loadLessons();
+  // Only this station's lesson goes into the page (for SEO); others load on demand.
+  const lesson = all[station.id];
   return (
     <main className="h-dvh overflow-hidden">
       <Journey
-        lessons={loadLessons()}
+        lessons={lesson ? { [station.id]: lesson } : {}}
+        lessonIds={Object.keys(all).map(Number)}
         articles={loadKnowledgeBase()}
         availableIds={V1_STATION_IDS}
         routeStationId={station.id}

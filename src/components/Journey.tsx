@@ -27,8 +27,13 @@ import { type RankId, rankIndex } from "@/lib/progress/ranks";
 import { hydrateProgress, useProgress } from "@/lib/progress/store";
 
 type Props = {
-  /** Lessons by station id, loaded and validated at build time. */
+  /**
+   * Lessons already in the page (only the one in the address, for SEO). Others are fetched from
+   * /lessons/<slug> when needed, so pages stay small as lessons are added.
+   */
   lessons: Record<number, Lesson>;
+  /** Stations that have a written lesson. */
+  lessonIds: readonly number[];
   availableIds: readonly number[];
   /** Knowledge-base articles (AOS-6.3). */
   articles: Article[];
@@ -40,8 +45,27 @@ type Props = {
 
 const slugOf = (id: number) => stationById(id)?.slug;
 
+/** One request per lesson, shared by prefetching and opening. */
+const lessonRequests = new Map<string, Promise<Lesson>>();
+export function fetchLesson(slug: string): Promise<Lesson> {
+  let request = lessonRequests.get(slug);
+  if (!request) {
+    request = fetch(`/lessons/${slug}`).then((r) => {
+      if (!r.ok) throw new Error(`Lesson ${slug}: HTTP ${r.status}`);
+      return r.json() as Promise<Lesson>;
+    });
+    // A failed request can be retried.
+    request.catch(() => lessonRequests.delete(slug));
+    lessonRequests.set(slug, request);
+  }
+  return request;
+}
+
 type LessonData = {
   lessons: Record<number, Lesson>;
+  lessonIds: readonly number[];
+  failed: ReadonlySet<number>;
+  ensureLesson: (id: number, retry?: boolean) => void;
   available: Station[];
   completedSlugs: string[];
   toggleComplete: (station: Station) => void;
@@ -50,12 +74,24 @@ const LessonData = createContext<LessonData | null>(null);
 
 /** The open panel's body. A stable component, fed by context, so its state survives progress updates. */
 function JourneyLesson({ station, goTo }: LessonViewProps) {
-  const { lessons, available, completedSlugs, toggleComplete } = use(LessonData)!;
+  const { lessons, lessonIds, failed, ensureLesson, available, completedSlugs, toggleComplete } =
+    use(LessonData)!;
+  useEffect(() => ensureLesson(station.id), [ensureLesson, station.id]);
   const i = available.findIndex((s) => s.id === station.id);
+  const lesson = lessons[station.id];
+  const status = lesson
+    ? "ready"
+    : !lessonIds.includes(station.id)
+      ? "unwritten"
+      : failed.has(station.id)
+        ? "error"
+        : "loading";
   return (
     <StationLesson
       station={station}
-      lesson={lessons[station.id]}
+      lesson={lesson}
+      status={status}
+      onRetry={() => ensureLesson(station.id, true)}
       completed={completedSlugs.includes(station.slug)}
       onToggleComplete={() => toggleComplete(station)}
       prev={i > 0 ? available[i - 1]! : null}
@@ -67,7 +103,40 @@ function JourneyLesson({ station, goTo }: LessonViewProps) {
 const idOfSlug = (slug: string) => STATIONS.find((s) => s.slug === slug)?.id;
 
 /** The whole learning journey: map, station lessons, progress, ranks and celebrations. */
-export function Journey({ lessons, availableIds, articles, routeStationId, children }: Props) {
+export function Journey({
+  lessons: initialLessons,
+  lessonIds,
+  availableIds,
+  articles,
+  routeStationId,
+  children,
+}: Props) {
+  const [lessons, setLessons] = useState(initialLessons);
+  const [failed, setFailed] = useState<ReadonlySet<number>>(new Set());
+  const lessonsRef = useRef(lessons);
+  useEffect(() => {
+    lessonsRef.current = lessons;
+  }, [lessons]);
+
+  /** Loads a written lesson once (no-op if it's here, or not written). `retry` clears a failure. */
+  const ensureLesson = useCallback(
+    (id: number, retry = false) => {
+      const slug = slugOf(id);
+      if (!slug || lessonsRef.current[id] || !lessonIds.includes(id)) return;
+      if (retry) {
+        setFailed((f) => {
+          const next = new Set(f);
+          next.delete(id);
+          return next;
+        });
+      }
+      fetchLesson(slug).then(
+        (lesson) => setLessons((all) => ({ ...all, [id]: lesson })),
+        () => setFailed((f) => new Set(f).add(id)),
+      );
+    },
+    [lessonIds],
+  );
   const completedSlugs = useProgress((s) => s.completed);
   const highestRank = useProgress((s) => s.highestRank);
   const onboardingSeen = useProgress((s) => s.onboardingSeen);
@@ -103,12 +172,17 @@ export function Journey({ lessons, availableIds, articles, routeStationId, child
     return last ? idOfSlug(last) : undefined;
   }, [routeStationId]);
 
-  const onStationChange = useCallback((id: number) => {
-    const store = useProgress.getState();
-    store.visit(slugOf(id)!);
-    // Moving the astronaut means the learner has got the idea: end the intro.
-    if (!store.onboardingSeen) store.finishOnboarding();
-  }, []);
+  const onStationChange = useCallback(
+    (id: number) => {
+      // Prefetch on landing, so "Enter station" opens instantly.
+      ensureLesson(id);
+      const store = useProgress.getState();
+      store.visit(slugOf(id)!);
+      // Moving the astronaut means the learner has got the idea: end the intro.
+      if (!store.onboardingSeen) store.finishOnboarding();
+    },
+    [ensureLesson],
+  );
 
   // Saved progress loads in SpaceMap's layout effect (above). This sync re-render, still before the
   // first paint, makes the progress box and check marks show it, with no flash of "0/14".
@@ -161,8 +235,16 @@ export function Journey({ lessons, availableIds, articles, routeStationId, child
   );
 
   const lessonData = useMemo(
-    () => ({ lessons, available, completedSlugs, toggleComplete }),
-    [lessons, available, completedSlugs, toggleComplete],
+    () => ({
+      lessons,
+      lessonIds,
+      failed,
+      ensureLesson,
+      available,
+      completedSlugs,
+      toggleComplete,
+    }),
+    [lessons, lessonIds, failed, ensureLesson, available, completedSlugs, toggleComplete],
   );
 
   // "/" opens search from anywhere on the map (not while typing or inside a dialog).

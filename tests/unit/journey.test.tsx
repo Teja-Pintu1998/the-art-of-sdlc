@@ -16,6 +16,7 @@ const renderJourney = (routeStationId?: number) =>
   render(
     <Journey
       lessons={lessons}
+      lessonIds={Object.keys(lessons).map(Number)}
       articles={articles}
       availableIds={V1_STATION_IDS}
       routeStationId={routeStationId}

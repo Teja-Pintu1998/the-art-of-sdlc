@@ -47,6 +47,21 @@ test.describe("station pages and lessons (AOS-4)", () => {
     expect(html).toContain("QuickBite");
   });
 
+  test("the home page carries no lesson HTML; lessons load on demand", async ({
+    page,
+    request,
+  }) => {
+    const home = await (await request.get("/")).text();
+    expect(home).not.toContain("Say this in your interview");
+    const json = await (await request.get("/lessons/prd")).json();
+    expect(json.sections).toHaveLength(8);
+
+    await visit(page, "/");
+    await page.getByTestId("astronaut").focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("dialog").getByRole("heading", { level: 3 })).toHaveCount(8);
+  });
+
   test("an unknown station is a 404", async ({ request }) => {
     expect((await request.get("/station/not-a-station")).status()).toBe(404);
   });

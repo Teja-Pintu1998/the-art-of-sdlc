@@ -42,7 +42,7 @@
 
 ## Follow-ups
 
-- [ ] Every page sends all lessons' HTML to the browser. That's fine for 5 lessons, but before AOS-8 (14 lessons), send only the open station's lesson and load the others on demand (review 🟡).
+- [x] ~~Every page sent all lessons' HTML.~~ Done in Sprint 4. Pages carry only the lesson in the address (for SEO). Others come from pre-built `/lessons/<slug>` JSON, prefetched when the astronaut lands, with loading and retry states.
 - [ ] The `## ` section split would also match a heading inside a code block. Switch to an AST-based split if lessons ever include Markdown code samples.
 
 - [ ] Write lessons 2–14 (AOS-7 to AOS-9), continuing the QuickBite story.

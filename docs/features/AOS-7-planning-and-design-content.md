@@ -23,4 +23,4 @@ Each "How we did it" quotes our real artifacts: the PRD review (RC-1, RC-2), the
 ## Follow-ups
 
 - [x] PO sign-off of lessons 1, 2, 3, 4 and 7 (2026-11-01).
-- [ ] Before AOS-8 (14 lessons), send only the open station's lesson to the browser (from the AOS-4 review).
+- [x] Only the open station's lesson is sent to the browser (done in Sprint 4).
