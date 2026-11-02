@@ -108,6 +108,6 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Block PRs that add vulnerable dependencies
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
