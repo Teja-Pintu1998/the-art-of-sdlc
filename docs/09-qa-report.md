@@ -96,4 +96,7 @@ Non-blocking polish from code reviews, tracked under "Follow-ups" in each featur
 
 **Proceed to code freeze (step 25) and staging (step 26), then UAT (step 27).** From the freeze on, `develop` takes only fixes for bugs found in UAT.
 
+- **Code freeze (step 25):** declared 2026-11-01 at `727fea9`.
+- **Staging (step 26):** Vercel deployed `develop` successfully: <https://the-art-of-sdlc-git-develop-rover19.vercel.app> (private: Vercel login required, by Deployment Protection).
+
 **Sign-off:** ✅ Claude (QA) · ⏳ Teja (PO, at UAT)
