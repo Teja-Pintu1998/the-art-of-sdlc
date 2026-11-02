@@ -16,6 +16,30 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "on-first-retry",
+    // The onboarding intro (AOS-6.1) is marked as seen, so it doesn't cover the map in other tests.
+    // tests/e2e/discovery.spec.ts starts without it to test the intro itself.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: `http://localhost:${PORT}`,
+          localStorage: [
+            {
+              name: "aos-progress",
+              value: JSON.stringify({
+                version: 1,
+                state: {
+                  completed: [],
+                  lastStation: null,
+                  highestRank: "intern",
+                  onboardingSeen: true,
+                },
+              }),
+            },
+          ],
+        },
+      ],
+    },
   },
   projects: [
     { name: "chromium", testDir: "tests/e2e", use: { ...devices["Desktop Chrome"] } },

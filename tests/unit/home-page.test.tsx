@@ -13,4 +13,11 @@ describe("Home page", () => {
     render(<Home />);
     expect(screen.getByText("npm install experience")).toBeInTheDocument();
   });
+
+  it("shows the space map with locked and available stations", () => {
+    render(<Home />);
+    expect(screen.getByTestId("space-map")).toBeInTheDocument();
+    expect(screen.getAllByTestId("planet")).toHaveLength(42);
+    expect(screen.getAllByText(/\(coming soon\)/)).toHaveLength(42 - 14);
+  });
 });

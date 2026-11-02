@@ -33,3 +33,14 @@ npm-debug.log*
 
 # Misc
 *.pem
+
+# Terraform: provider downloads and local state (state can hold sensitive values)
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
+crash.*.log

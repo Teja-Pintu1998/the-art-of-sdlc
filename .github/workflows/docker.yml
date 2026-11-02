@@ -1,0 +1,61 @@
+name: Docker image
+
+# AOS-1.6: build the production image, smoke-test it, scan it, and (on main) push it to GitHub's
+# container registry, tagged with the commit SHA. Free for public repos (PRD SC-3). The site
+# itself is served by Vercel; this image proves the app also runs as a container.
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/teja-pintu1998/the-art-of-sdlc
+
+jobs:
+  image:
+    name: Build, smoke-test, scan (and push on main)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          TAG="sha-${GITHUB_SHA::7}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          docker build -t "$IMAGE:$TAG" .
+          docker image ls "$IMAGE" --format 'Image size: {{.Size}}'
+
+      - name: Smoke test (the container serves pages and returns real 404s)
+        run: |
+          docker run -d --name app -p 3000:3000 "$IMAGE:$TAG"
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          check() { code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:3000$1"); echo "$1 → $code"; [ "$code" = "$2" ]; }
+          check / 200
+          check /station/git 200
+          check /lessons/git 200
+          check /lessons/feature-flags 404
+          check /station/nope 404
+          docker exec app whoami | grep -qx app   # runs as non-root
+          docker rm -f app
+
+      - name: Security scan (fail on critical vulnerabilities that have a fix)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.58.1 \
+            image --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress "$IMAGE:$TAG"
+
+      - name: Push to GitHub Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push "$IMAGE:$TAG"

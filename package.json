@@ -17,13 +17,22 @@
     "test:visual": "playwright test --project=visual",
     "test:all": "npm test && npm run test:e2e:local && npm run test:visual",
     "test:e2e:local": "playwright test --project=chromium --project=webkit",
-    "coverage:baseline": "node -e \"const s=require('./coverage/coverage-summary.json');require('fs').writeFileSync('tests/coverage-baseline.json',JSON.stringify({total:s.total},null,2)+'\\\\n')\""
+    "coverage:baseline": "node -e \"const s=require('./coverage/coverage-summary.json');require('fs').writeFileSync('tests/coverage-baseline.json',JSON.stringify({total:s.total},null,2)+'\\\\n')\"",
+    "bench:map": "node scripts/bench-map.mjs"
   },
   "dependencies": {
     "framer-motion": "^14.9.0",
+    "gray-matter": "^4.0.3",
     "next": "16.4.3",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
