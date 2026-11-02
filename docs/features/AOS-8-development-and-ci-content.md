@@ -1,8 +1,8 @@
-# AOS-8: Content: development and CI stations ⏳ awaiting PO sign-off
+# AOS-8: Content: development and CI stations ✅
 
 > **As a** learner, **I want** interview-ready lessons on how code is written, reviewed and integrated, **so that** I can talk confidently about engineering practices.
 
-**Status:** all 5 lessons written on `develop` (Sprint 4). **Each needs the PO's sign-off before publishing.**
+**Status:** all 5 lessons written on `develop` (Sprint 4). **Signed off by the PO on 2026-11-01** ("go" at the Go/No-Go meeting, which was conditional on this sign-off).
 
 ## Lessons
 

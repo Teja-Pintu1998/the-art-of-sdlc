@@ -6,7 +6,7 @@
 | **SDLC step** | 32. Go/No-Go meeting |
 | **Release** | v1.0.0 ([release notes](10-release-notes.md)) · [CR-001](12-change-request.md) ✅ approved |
 | **Attendees** | Teja (PO, decision owner) · Claude (Engineering, QA, release) |
-| **Decision** | ⏳ Pending |
+| **Decision** | ✅ **GO**, 2026-11-01 |
 
 ---
 
@@ -15,7 +15,7 @@
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | 1 | All Must-have requirements done and accepted | ✅ | FR-1 to FR-7 built and tested; UAT approved |
-| 2 | All 14 v1 stations written and reviewed | 🟡 | 11 / 14 written. #27 is written right after this meeting, and #29 and #34 show "Coming after launch" (PRD exemptions). **Open: PO sign-off of the 5 AOS-8 lessons and #26.** |
+| 2 | All 14 v1 stations written and reviewed | ✅ | 11 / 14 written and signed off (AOS-8 and #26 signed off with the Go). #27 is written right after this meeting; #29 and #34 show "Coming after launch" (PRD exemptions). |
 | 3 | Coverage ≥ 80%; all tests pass; no open P1/P2 | ✅ | 98.8%; 222 unit, 106 E2E, 4 visual green; none open ([QA report](09-qa-report.md)) |
 | 4 | Lighthouse ≥ 90; accessibility checks pass | ✅ | 96 / 100; axe clean |
 | 5 | UAT signed off by the PO | ✅ | 2026-11-01 |
@@ -41,4 +41,4 @@
 
 | Decision owner | Decision | Date |
 |---|---|---|
-| Teja (PO) | ⏳ | |
+| Teja (PO) | ✅ **GO** ("go"), which also signs off the AOS-8 lessons and #26 | 2026-11-01 |

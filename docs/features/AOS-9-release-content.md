@@ -19,7 +19,7 @@
 - **How we did it:** CR-001 (normal, low risk), the placeholder-production finding that moved the first canary to v1.0.1, and the PO as the whole CAB, with the approval recorded verbatim.
 - **Checks:** passes every build-time rule (reading time under 5 minutes, 165-word interview answer, 5 questions, no years of experience). All 222 unit, 106 E2E and 4 visual tests pass.
 
-**Needs PO sign-off before publishing.**
+**Signed off by the PO on 2026-11-01** ("go" at the Go/No-Go meeting).
 
 ## Follow-ups
 

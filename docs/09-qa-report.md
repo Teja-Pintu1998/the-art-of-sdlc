@@ -85,11 +85,11 @@ Non-blocking polish from code reviews, tracked under "Follow-ups" in each featur
 | Criterion | Status |
 |---|---|
 | All Must-have requirements done (FR-1 to FR-7) | ✅ Built and tested; PO acceptance at UAT |
-| All 14 v1 stations written and reviewed | 🔵 10 / 14: AOS-7 (5) signed off, AOS-8 (5) awaiting PO sign-off, AOS-9 (4) written during the release by design |
+| All 14 v1 stations written and reviewed | ✅ AOS-7 and AOS-8 (10) signed off; AOS-9 (4) written along the release: #26 signed off, #27 after Go/No-Go, #29 and #34 after launch (PRD exemptions) |
 | Coverage ≥ 80%; all tests pass; no open P1/P2 | ✅ 98.8%; all green; none open |
 | Lighthouse ≥ 90; accessibility checks pass | ✅ 96 / 100; axe clean |
 | UAT signed off by the PO | ✅ Approved 2026-11-01 (step 27) |
-| CR approved; Go/No-Go is **Go** | ⏳ Steps 30–32 |
+| CR approved; Go/No-Go is **Go** | ✅ CR-001 approved; **GO** on 2026-11-01 |
 | Monitoring and alerts live before full rollout | 🔵 Dashboard and alert conditions in Terraform (AOS-10); `NEXT_PUBLIC_NEW_RELIC` must also be enabled for **Preview** so canary visitors report |
 
 ## 7. Recommendation
