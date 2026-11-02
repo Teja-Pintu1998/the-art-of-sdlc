@@ -7,7 +7,7 @@
 | **SDLC steps** | 30. Change Request · 31. CAB approval |
 | **Requested by** | Claude (Release manager) |
 | **Change type** | **Normal** (planned, needs CAB approval; not standard or emergency) |
-| **Status** | ⏳ Awaiting CAB approval |
+| **Status** | ✅ Approved by CAB, 2026-11-01 (go-ahead depends on Go/No-Go) |
 
 ---
 
@@ -60,6 +60,6 @@ Vercel **Instant Rollback** to the previous production deployment (under 1 minut
 | Role | Name | Decision | Date |
 |---|---|---|---|
 | Change owner (Engineering) | Claude | ✅ Recommend approval | 2026-11-01 |
-| CAB / Product owner | Teja | ⏳ | |
+| CAB / Product owner | Teja | ✅ Approved (given to Claude in chat: "approve it on behalf of me") | 2026-11-01 |
 
 **Conditions for go-ahead:** Go/No-Go is **Go**, and the pre-deployment checklist (runbook section 2) is complete.
