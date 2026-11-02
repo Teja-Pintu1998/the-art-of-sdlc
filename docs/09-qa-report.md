@@ -102,3 +102,9 @@ Non-blocking polish from code reviews, tracked under "Follow-ups" in each featur
 - **UAT (step 27):** ✅ approved by the PO on staging, 2026-11-01 ("all looks good"). No UAT bugs raised.
 
 **Sign-off:** ✅ Claude (QA) · ✅ Teja (PO, UAT)
+
+## 8. Release PR #21 (final integration)
+
+- **CI, first run:** 6 of 7 required checks passed, including **Firefox E2E** (its first run on this code). Visual regression failed only because Linux baselines didn't exist yet, as planned. The 4 Linux screenshots were reviewed and committed from the CI `visual-results` artifact.
+- **`test-guardian`:** **PASS**. 332 / 332 tests (222 unit, 106 E2E, 4 visual), none skipped; coverage at or above baseline (lines 99.73%, branches 93.27%).
+- **Coverage gaps it recommends (P4, after launch):** `/station/<slug>/extra` returning 404; a canary rewrite with no bypass secret; arrow keys with the astronaut focused moving once; opening a panel after onboarding not calling `finishOnboarding` again; a three-finger touch during a pinch.
