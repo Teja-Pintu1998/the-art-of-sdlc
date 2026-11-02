@@ -108,3 +108,20 @@ Non-blocking polish from code reviews, tracked under "Follow-ups" in each featur
 - **CI, first run:** 6 of 7 required checks passed, including **Firefox E2E** (its first run on this code). Visual regression failed only because Linux baselines didn't exist yet, as planned. The 4 Linux screenshots were reviewed and committed from the CI `visual-results` artifact.
 - **`test-guardian`:** **PASS**. 332 / 332 tests (222 unit, 106 E2E, 4 visual), none skipped; coverage at or above baseline (lines 99.73%, branches 93.27%).
 - **Coverage gaps it recommends (P4, after launch):** `/station/<slug>/extra` returning 404; a canary rewrite with no bypass secret; arrow keys with the astronaut focused moving once; opening a panel after onboarding not calling `finishOnboarding` again; a three-finger touch during a pinch.
+- **Merged** by the PO on 2026-11-02 as `0d6e3e2`; Vercel deployed it to production.
+
+## 9. Production smoke test (runbook §4), 2026-11-02, `0d6e3e2`
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Home page loads (200) with the map and the server-rendered intro card | ✅ |
+| 2 | Security headers: CSP, HSTS, `X-Frame-Options: DENY`, `nosniff`, referrer and permissions policies | ✅ |
+| 3 | `/station/problem-statement` 200; an unknown station 404 | ✅ |
+| 4 | Core journey: the astronaut moves, the preview card offers Enter station, the lesson opens, and Mark as complete survives a reload (1/14) | ✅ |
+| 5 | Search (`/`, "docker" finds a result) and the Knowledge base open and close with Escape | ✅ |
+| 6 | Phone: no sideways scroll; tapping a planet moves the astronaut | ✅ at 390×844 · 🟡 see P3 below |
+| 7 | New Relic agent loaded, tagged `release=0d6e3e2`, beacons accepted (200/204); no console errors | ✅ |
+
+**Verdict:** pass, no rollback. **v1.0.0 is live.**
+
+**New P3, found by the smoke test:** at 390×664 (an iPhone 13's visible area with Safari's toolbars) the opening view puts planet 3 under the Rank card, so a tap there hits the card. The user can pan it into view; nothing breaks. To fix in v1.0.1: account for the Rank card (bottom inset) when fitting the opening view, and add an E2E test at that viewport.
