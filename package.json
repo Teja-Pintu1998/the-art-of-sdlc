@@ -21,7 +21,7 @@
     "bench:map": "node scripts/bench-map.mjs"
   },
   "dependencies": {
-    "framer-motion": "^14.9.0",
+    "framer-motion": "^14.9.1",
     "gray-matter": "^4.0.3",
     "next": "16.4.3",
     "react": "19.3.0",
